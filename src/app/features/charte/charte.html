@@ -1,0 +1,147 @@
+<div class="conteneur page">
+  <header class="entete">
+    <a routerLink="/" aria-label="Kadi, accueil"><img class="logo" src="logo-kadi.png" width="770" height="560" alt="Kadi" /></a>
+    <a class="lien" routerLink="/">Retour</a>
+  </header>
+
+  <main>
+    <section class="titre">
+      <p class="pastille pastille--neutre">Charte visuelle · v0.1</p>
+      <h1>Une base commune, <span class="feutre">chacun chez soi</span>.</h1>
+      <p class="chapo">
+        À lire avant d’écrire une ligne de CSS. Chaque valeur ci-dessous existe dans
+        <code>src/styles/tokens.css</code> ; les briques sont dans <code>components.css</code>.
+      </p>
+    </section>
+
+    <section class="bloc" aria-labelledby="t-logo">
+      <h2 id="t-logo">Le logo</h2>
+      <div class="grille grille--3">
+        <figure class="fond fond--papier"><img src="logo-kadi.png" alt="Logo Kadi sur fond papier" /></figure>
+        <figure class="fond fond--menthe"><img src="logo-kadi.png" alt="Logo Kadi sur fond menthe" /></figure>
+        <figure class="fond fond--blanc"><img src="logo-kadi.png" alt="Logo Kadi sur fond blanc cassé" /></figure>
+      </div>
+      <ul class="notes">
+        <li>Sur papier, blanc cassé ou menthe uniquement : le vert foncé disparaît sur un fond sombre.</li>
+        <li>Largeur minimale 96 px. Zone de protection égale à la hauteur du « a » tout autour.</li>
+        <li>Ni déformation, ni recoloration, ni ombre portée. Le PNG détouré est <code>public/logo-kadi.png</code>.</li>
+      </ul>
+    </section>
+
+    <section class="bloc" aria-labelledby="t-couleurs">
+      <h2 id="t-couleurs">Les couleurs</h2>
+      <div class="grille grille--4">
+        @for (c of couleurs; track c.jeton) {
+          <article class="echantillon">
+            <div class="echantillon__pastille" [style.background]="'var(' + c.jeton + ')'"></div>
+            <h3>{{ c.nom }}</h3>
+            <p class="mono">{{ c.hex }}</p>
+            <p class="mono">{{ c.jeton }}</p>
+            <p class="echantillon__role">{{ c.role }}</p>
+          </article>
+        }
+      </div>
+      <p class="proportion-legende">Proportions visées d’un écran</p>
+      <div class="proportion" aria-label="Papier 60 %, verts 25 %, menthe 10 %, accents 5 %">
+        <span style="flex: 60; background: var(--papier)">Papier 60</span>
+        <span style="flex: 25; background: var(--panier); color: var(--blanc)">Verts 25</span>
+        <span style="flex: 10; background: var(--menthe)">Menthe 10</span>
+        <span style="flex: 5; background: var(--beurre)">5</span>
+      </div>
+    </section>
+
+    <section class="bloc" aria-labelledby="t-typo">
+      <h2 id="t-typo">Les lettres</h2>
+      <div class="grille grille--3">
+        <article class="carte">
+          <p class="mono">Fredoka · 600–700</p>
+          <p class="specimen specimen--titre">Aa</p>
+          <p>Titres, boutons, chiffres mis en avant. Sa rondeur rejoint celle du logo.</p>
+        </article>
+        <article class="carte">
+          <p class="mono">Instrument Sans · 400–600</p>
+          <p class="specimen specimen--texte">Aa</p>
+          <p>Texte courant, libellés, listes. Sobre, pour laisser la place aux produits.</p>
+        </article>
+        <article class="carte">
+          <p class="mono">DM Mono · 400</p>
+          <p class="specimen specimen--ticket">Aa</p>
+          <p>Détails de ticket de caisse : références, quantités, formats. Jamais pour un paragraphe.</p>
+        </article>
+      </div>
+      <div class="echelle">
+        <p class="echelle__ligne"><span class="mono">Titre 1 · 56–96</span><span class="t1">Les bons comptes</span></p>
+        <p class="echelle__ligne"><span class="mono">Titre 2 · 36</span><span class="t2">Ma liste de courses</span></p>
+        <p class="echelle__ligne"><span class="mono">Titre 3 · 24</span><span class="t3">Produits laitiers</span></p>
+        <p class="echelle__ligne"><span class="mono">Texte · 16/1,55</span><span>Yaourt nature, référence non précisée.</span></p>
+        <p class="echelle__ligne"><span class="mono">Détail · 14</span><span class="detail">Pot de 4 × 125 g</span></p>
+      </div>
+    </section>
+
+    <section class="bloc" aria-labelledby="t-compo">
+      <h2 id="t-compo">Les briques</h2>
+      <div class="grille grille--2">
+        <article class="carte pile">
+          <h3>Boutons</h3>
+          <div class="rangee">
+            <button class="bouton" type="button">Ajouter</button>
+            <button class="bouton bouton--secondaire" type="button">Annuler</button>
+            <button class="bouton bouton--danger" type="button">Supprimer</button>
+            <button class="bouton" type="button" disabled>Indisponible</button>
+          </div>
+          <p class="champ__aide">Un seul bouton principal par zone. Au clic, il s’enfonce de 4 px.</p>
+        </article>
+
+        <article class="carte pile">
+          <h3>Pastilles</h3>
+          <div class="rangee">
+            <span class="pastille">Produit précis</span>
+            <span class="pastille pastille--neutre">Référence non précisée</span>
+            <span class="pastille pastille--beurre">Personnalisé</span>
+            <span class="pastille pastille--tomate">Aucun résultat</span>
+          </div>
+          <p class="champ__aide">Toujours du texte : la couleur seule ne dit jamais l’état.</p>
+        </article>
+
+        <article class="carte pile">
+          <h3>Champs</h3>
+          <div class="champ">
+            <label class="champ__libelle" for="demo-recherche">Un produit</label>
+            <input class="champ__saisie" id="demo-recherche" type="text" placeholder="Ex. yaourt nature" />
+            <p class="champ__aide">Le libellé reste visible, le texte d’exemple ne le remplace pas.</p>
+          </div>
+          <div class="champ">
+            <label class="champ__libelle" for="demo-quantite">Quantité</label>
+            <input class="champ__saisie" id="demo-quantite" type="text" value="0" aria-invalid="true" aria-describedby="demo-erreur" />
+            <p class="champ__erreur" id="demo-erreur">La quantité doit être supérieure à zéro.</p>
+          </div>
+        </article>
+
+        <article class="carte pile">
+          <h3>Formes et relief</h3>
+          <div class="rangee">
+            <span class="forme" style="border-radius: var(--rayon-s)">10</span>
+            <span class="forme" style="border-radius: var(--rayon-m)">18</span>
+            <span class="forme" style="border-radius: var(--rayon-l)">32</span>
+            <span class="forme" style="border-radius: var(--rayon-pilule)">pilule</span>
+          </div>
+          <p class="champ__aide">Trait de 2 px en forêt et ombre pleine, jamais d’ombre floue.</p>
+          <div class="espaces" aria-label="Échelle d’espacement">
+            @for (e of espaces; track e) {
+              <span class="espaces__pas" [style.width.px]="e" [style.height.px]="e" [title]="e + ' px'"></span>
+            }
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="bloc" aria-labelledby="t-regles">
+      <h2 id="t-regles">Pour travailler ensemble</h2>
+      <ol class="regles">
+        @for (r of regles; track r) {
+          <li>{{ r }}</li>
+        }
+      </ol>
+    </section>
+  </main>
+</div>

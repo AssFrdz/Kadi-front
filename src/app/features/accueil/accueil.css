@@ -1,0 +1,57 @@
+:host { display: block; min-height: 100vh; overflow-x: clip; }
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+
+.entete { display: flex; align-items: center; justify-content: space-between; gap: var(--e4); padding-block: var(--e5); }
+.entete nav { display: flex; align-items: center; gap: var(--e5); }
+.logo { height: 56px; width: auto; }
+.lien { font: 600 1rem var(--police-titre); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+.lien:hover { text-decoration-color: var(--feuille); }
+
+.scene { flex: 1; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--e7); align-items: center; padding-bottom: var(--e8); }
+.propos { display: grid; justify-items: start; gap: var(--e5); }
+h1 { font-size: clamp(2.75rem, 6.4vw, 6rem); font-weight: 700; line-height: 0.98; letter-spacing: -0.03em; }
+.intro { max-width: 34ch; color: var(--encre-douce); font-size: 1.125rem; }
+
+.composition { position: relative; min-height: 540px; }
+.tache {
+  position: absolute; inset: 4% 8% 8% 0;
+  display: grid; place-items: center;
+  border: var(--epaisseur) solid var(--trait);
+  border-radius: 58% 42% 52% 48% / 46% 54% 46% 54%;
+  background: var(--menthe);
+  box-shadow: var(--relief-m);
+  transform: rotate(-4deg);
+}
+.panier { width: 58%; transform: rotate(4deg) translateY(-6%); }
+
+.ticket-ombre { position: absolute; right: 0; bottom: 0; width: min(270px, 62%); filter: drop-shadow(0 5px 0 var(--trait)); transform: rotate(5deg); }
+.ticket {
+  padding: var(--e5) var(--e4) var(--e6);
+  background: var(--blanc);
+  font: 400 0.8125rem/1.5 var(--police-ticket);
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 10px) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 20px 10px repeat-x;
+  mask: linear-gradient(#000 0 0) top / 100% calc(100% - 10px) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 20px 10px repeat-x;
+}
+.ticket__titre { margin-bottom: var(--e3); text-align: center; font: 600 1.25rem var(--police-titre); letter-spacing: 0.3em; }
+.ticket__ligne { display: flex; justify-content: space-between; gap: var(--e3); padding-block: 4px; border-bottom: 1px dashed var(--trait-doux); }
+.ticket__merci { margin-top: var(--e4); text-align: center; color: var(--encre-douce); font-size: 0.75rem; }
+
+.macaron {
+  position: absolute; top: 0; right: 10%;
+  display: grid; place-items: center;
+  width: 104px; aspect-ratio: 1;
+  border: var(--epaisseur) solid var(--trait); border-radius: 50%;
+  background: var(--beurre);
+  font: 600 1.25rem/1 var(--police-titre);
+  box-shadow: var(--relief);
+  transform: rotate(-12deg);
+}
+
+@media (max-width: 860px) {
+  .entete nav { flex-wrap: wrap; justify-content: flex-end; gap: var(--e3); }
+  .scene { grid-template-columns: 1fr; gap: var(--e6); }
+  .composition { min-height: 420px; order: -1; }
+  .logo { height: 44px; }
+}

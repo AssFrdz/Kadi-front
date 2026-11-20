@@ -1,0 +1,16 @@
+:host { display: block; min-height: 100vh; }
+
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+.entete { display: flex; align-items: center; justify-content: space-between; padding-block: var(--e5); }
+.logo { height: 56px; width: auto; }
+.contenu { display: grid; flex: 1; place-items: center; padding-block: var(--e6) var(--e8); }
+.message-carte { display: grid; gap: var(--e5); width: min(100%, 560px); }
+h1 { font-size: clamp(2.25rem, 6vw, 3.5rem); }
+.intro { color: var(--encre-douce); font-size: 1.125rem; }
+.bouton { justify-self: start; }
+.message-erreur { color: var(--erreur); font-weight: 600; }
+
+@media (max-width: 600px) {
+  .logo { height: 44px; }
+  .message-carte { padding: var(--e4); border-radius: var(--rayon-m); }
+}

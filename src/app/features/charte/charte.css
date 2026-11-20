@@ -1,0 +1,59 @@
+:host { display: block; padding-bottom: var(--e9); }
+.entete { display: flex; align-items: center; justify-content: space-between; padding-block: var(--e5); }
+.logo { height: 56px; width: auto; }
+.lien { font: 600 1rem var(--police-titre); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+
+.titre { display: grid; justify-items: start; gap: var(--e5); padding-block: var(--e7) var(--e8); }
+h1 { max-width: 14ch; font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 700; letter-spacing: -0.03em; }
+.chapo { max-width: 52ch; color: var(--encre-douce); font-size: 1.125rem; }
+code, .mono { font-family: var(--police-ticket); font-size: 0.8125rem; }
+
+.bloc { padding-block: var(--e7); border-top: var(--epaisseur) solid var(--trait); display: grid; gap: var(--e6); }
+h2 { font-size: clamp(1.75rem, 3.4vw, 2.5rem); }
+h3 { font-size: 1.25rem; }
+.grille { display: grid; gap: var(--e5); }
+.grille--2 { grid-template-columns: repeat(2, 1fr); }
+.grille--3 { grid-template-columns: repeat(3, 1fr); }
+.grille--4 { grid-template-columns: repeat(4, 1fr); }
+
+.fond { display: grid; place-items: center; margin: 0; padding: var(--e7) var(--e5); border: var(--epaisseur) solid var(--trait); border-radius: var(--rayon-l); }
+.fond img { width: min(60%, 200px); height: auto; }
+.fond--papier { background: var(--papier); }
+.fond--menthe { background: var(--menthe); }
+.fond--blanc { background: var(--blanc); }
+.notes { display: grid; gap: var(--e2); margin: 0; padding-left: var(--e5); color: var(--encre-douce); }
+
+.echantillon { display: grid; gap: 2px; align-content: start; }
+.echantillon__pastille { height: 96px; margin-bottom: var(--e3); border: var(--epaisseur) solid var(--trait); border-radius: var(--rayon-m); }
+.echantillon__role { margin-top: var(--e1); color: var(--encre-douce); font-size: 0.875rem; }
+.proportion-legende { font-weight: 600; }
+.proportion { display: flex; overflow: hidden; border: var(--epaisseur) solid var(--trait); border-radius: var(--rayon-pilule); font: 600 0.8125rem var(--police-texte); }
+.proportion span { padding: var(--e3) var(--e4); white-space: nowrap; overflow: hidden; }
+
+.specimen { margin: var(--e3) 0; font-size: 5rem; line-height: 1; }
+.specimen--titre { font-family: var(--police-titre); font-weight: 700; }
+.specimen--texte { font-family: var(--police-texte); font-weight: 500; }
+.specimen--ticket { font-family: var(--police-ticket); }
+.echelle { display: grid; }
+.echelle__ligne { display: grid; grid-template-columns: 200px 1fr; align-items: baseline; gap: var(--e4); padding-block: var(--e3); border-bottom: 1px dashed var(--trait-doux); }
+.t1 { font: 700 clamp(2.5rem, 5vw, 3.5rem)/1 var(--police-titre); }
+.t2 { font: 600 2.25rem/1.1 var(--police-titre); }
+.t3 { font: 600 1.5rem/1.2 var(--police-titre); }
+.detail { font-size: 0.875rem; color: var(--encre-douce); }
+
+.pile { display: grid; gap: var(--e5); align-content: start; }
+.rangee { display: flex; flex-wrap: wrap; gap: var(--e3); }
+.forme { display: grid; place-items: center; min-width: 72px; height: 72px; padding-inline: var(--e3); border: var(--epaisseur) solid var(--trait); background: var(--menthe); box-shadow: var(--relief); font: 600 0.875rem var(--police-ticket); }
+.espaces { display: flex; align-items: flex-end; gap: var(--e2); }
+.espaces__pas { background: var(--feuille); border: var(--epaisseur) solid var(--trait); }
+
+.regles { display: grid; gap: var(--e4); margin: 0; padding: 0; list-style: none; counter-reset: r; }
+.regles li { counter-increment: r; display: grid; grid-template-columns: 48px 1fr; align-items: start; max-width: 68ch; font-size: 1.125rem; }
+.regles li::before { content: counter(r); display: grid; place-items: center; width: 34px; height: 34px; border: var(--epaisseur) solid var(--trait); border-radius: 50%; background: var(--beurre); font: 600 0.9375rem var(--police-titre); }
+
+@media (max-width: 900px) {
+  .grille--4 { grid-template-columns: repeat(2, 1fr); }
+  .grille--3, .grille--2 { grid-template-columns: 1fr; }
+  .echelle__ligne { grid-template-columns: 1fr; gap: var(--e1); }
+  .logo { height: 44px; }
+}

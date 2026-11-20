@@ -1,0 +1,81 @@
+/* Briques communes. Les features les assemblent, elles ne les redéfinissent pas. */
+
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  min-height: 48px;
+  padding: 0 var(--e5);
+  border: var(--epaisseur) solid var(--trait);
+  border-radius: var(--rayon-pilule);
+  background: var(--action);
+  color: var(--blanc);
+  font: 600 1rem/1 var(--police-titre);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--relief);
+  transition: transform var(--duree) var(--courbe), box-shadow var(--duree) var(--courbe), background var(--duree);
+}
+.bouton:hover { background: var(--action-survol); }
+.bouton:active { transform: translateY(4px); box-shadow: 0 0 0 var(--trait); }
+.bouton--secondaire { background: var(--blanc); color: var(--encre); }
+.bouton--secondaire:hover { background: var(--beurre); }
+.bouton--danger { background: var(--tomate-claire); color: var(--erreur); }
+.bouton--danger:hover { background: var(--erreur); color: var(--blanc); }
+.bouton:disabled, .bouton[aria-disabled='true'] {
+  background: var(--papier-fonce);
+  color: var(--encre-douce);
+  border-color: var(--trait-doux);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.champ { display: grid; gap: var(--e2); }
+.champ__libelle { font-weight: 600; font-size: 0.9375rem; }
+.champ__aide { color: var(--encre-douce); font-size: 0.875rem; }
+.champ__erreur { color: var(--erreur); font-size: 0.875rem; font-weight: 600; }
+.champ__saisie {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 var(--e4);
+  border: var(--epaisseur) solid var(--trait);
+  border-radius: var(--rayon-m);
+  background: var(--blanc);
+  color: var(--encre);
+  font: inherit;
+  transition: box-shadow var(--duree) var(--courbe);
+}
+.champ__saisie::placeholder { color: var(--encre-douce); opacity: 0.75; }
+.champ__saisie:focus-visible { outline-offset: 0; box-shadow: var(--relief); }
+.champ__saisie[aria-invalid='true'] { border-color: var(--erreur); background: var(--tomate-claire); }
+
+.pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e2);
+  padding: 6px var(--e4);
+  border: var(--epaisseur) solid var(--trait);
+  border-radius: var(--rayon-pilule);
+  background: var(--menthe-claire);
+  font: 600 0.875rem/1.2 var(--police-texte);
+}
+.pastille--beurre { background: var(--beurre); }
+.pastille--tomate { background: var(--tomate-claire); }
+.pastille--neutre { background: var(--blanc); }
+
+.carte {
+  padding: var(--e5);
+  border: var(--epaisseur) solid var(--trait);
+  border-radius: var(--rayon-l);
+  background: var(--surface);
+  box-shadow: var(--relief-m);
+}
+
+/* Surlignage « feutre » sous un mot de titre : une seule fois par écran. */
+.feutre {
+  background: linear-gradient(transparent 58%, var(--beurre) 58% 92%, transparent 92%);
+  padding-inline: 0.08em;
+  margin-inline: -0.08em;
+}
