@@ -1,0 +1,13 @@
+<header class="entete">
+  <span class="marque">Kadi</span>
+  <nav>
+    <a routerLink="/catalogue" routerLinkActive="actif">Catalogue</a>
+    <a routerLink="/prix" routerLinkActive="actif">Prix</a>
+    <a routerLink="/comparaison" routerLinkActive="actif">Comparaison</a>
+  </nav>
+  <small class="etat-api">{{ etatApi() }}</small>
+</header>
+
+<main class="contenu">
+  <router-outlet />
+</main>

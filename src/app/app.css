@@ -1,0 +1,35 @@
+.entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+}
+
+.marque {
+  font-weight: 700;
+}
+
+nav {
+  display: flex;
+  gap: 12px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.actif {
+  text-decoration: underline;
+}
+
+.etat-api {
+  margin-left: auto;
+  color: #666;
+}
+
+.contenu {
+  padding: 16px;
+}
