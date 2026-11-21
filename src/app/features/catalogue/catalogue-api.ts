@@ -29,6 +29,11 @@ export interface FiltresCatalogue {
   format: string;
 }
 
+export interface MarqueCatalogue {
+  nom: string;
+  nombre: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CatalogueApi {
   private readonly http = inject(HttpClient);
@@ -36,6 +41,28 @@ export class CatalogueApi {
   consulter(apres: number, filtres: FiltresCatalogue = { marque: '', format: '' }): Observable<PageCatalogue> {
     return this.http.get<PageCatalogue>(`${BASE_API}/catalogue/produits`, {
       params: this.ajouterFiltres(new HttpParams().set('apres', apres), filtres),
+      withCredentials: true,
+    });
+  }
+
+  consulterParNom(apres: string | null, filtres: FiltresCatalogue): Observable<PageRecherche> {
+    let params = this.ajouterFiltres(new HttpParams(), filtres);
+    if (apres !== null) {
+      params = params.set('apres', apres);
+    }
+    return this.http.get<PageRecherche>(`${BASE_API}/catalogue/produits/par-nom`, {
+      params,
+      withCredentials: true,
+    });
+  }
+
+  listerMarques(q: string, format: string): Observable<MarqueCatalogue[]> {
+    let params = new HttpParams().set('q', q);
+    if (format) {
+      params = params.set('format', format);
+    }
+    return this.http.get<MarqueCatalogue[]>(`${BASE_API}/catalogue/produits/marques`, {
+      params,
       withCredentials: true,
     });
   }

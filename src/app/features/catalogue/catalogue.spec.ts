@@ -8,15 +8,64 @@ import { Catalogue } from './catalogue';
 
 describe('Catalogue', () => {
   const consulter = vi.fn();
+  const consulterParNom = vi.fn();
+  const listerMarques = vi.fn();
   const rechercher = vi.fn();
 
   beforeEach(() => {
     consulter.mockReset();
+    consulterParNom.mockReset();
+    listerMarques.mockReset();
+    listerMarques.mockReturnValue(of([]));
     rechercher.mockReset();
     TestBed.configureTestingModule({
       imports: [Catalogue],
-      providers: [provideRouter([]), { provide: CatalogueApi, useValue: { consulter, rechercher } }],
+      providers: [provideRouter([]), { provide: CatalogueApi, useValue: { consulter, consulterParNom, rechercher, listerMarques } }],
     });
+  });
+
+  it('trie le catalogue sans perdre les filtres, charge et réessaie la suite', async () => {
+      consulter.mockReturnValue(of({ produits: [{ id: 1, libelle: 'Zèbre' }], prochainId: null }));
+      consulterParNom
+        .mockReturnValueOnce(of({ produits: [{ id: 2, libelle: 'Abricot' }], prochainCurseur: 'suite' }))
+        .mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 503 })))
+        .mockReturnValueOnce(of({ produits: [{ id: 1, libelle: 'Zèbre' }], prochainCurseur: null }));
+      const fixture = TestBed.createComponent(Catalogue);
+      fixture.detectChanges();
+      fixture.componentInstance.appliquerFiltres('Test', '');
+      const tri = fixture.nativeElement.querySelector('#tri-catalogue') as HTMLSelectElement;
+      tri.value = 'nom';
+      tri.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+      expect(consulterParNom).toHaveBeenLastCalledWith(null, { marque: 'Test', format: '' });
+      expect(fixture.nativeElement.textContent).toContain('Abricot');
+      expect(fixture.nativeElement.textContent).not.toContain('Zèbre');
+      fixture.componentInstance.chargerSuite();
+      expect(fixture.componentInstance.erreur()).not.toBe('');
+      fixture.componentInstance.reessayerCatalogue();
+      fixture.detectChanges();
+      expect(consulterParNom).toHaveBeenLastCalledWith('suite', { marque: 'Test', format: '' });
+      expect(fixture.nativeElement.textContent).toContain('Zèbre');
+      expect(fixture.componentInstance.produits()).toHaveLength(2);
+      fixture.destroy();
+  });
+
+  it('annule une ancienne page triée quand les filtres changent', () => {
+    consulter.mockReturnValue(of({ produits: [], prochainId: null }));
+    const ancienne = new Subject<{ produits: { id: number; libelle: string }[]; prochainCurseur: null }>();
+    consulterParNom.mockReturnValueOnce(ancienne)
+      .mockReturnValueOnce(of({ produits: [{ id: 2, libelle: 'Nouveau' }], prochainCurseur: null }));
+    const fixture = TestBed.createComponent(Catalogue);
+    fixture.detectChanges();
+    fixture.componentInstance.changerTri('nom');
+    fixture.componentInstance.appliquerFiltres('Test', '');
+    ancienne.next({ produits: [{ id: 1, libelle: 'Ancien' }], prochainCurseur: null });
+    fixture.detectChanges();
+    expect(consulterParNom).toHaveBeenLastCalledWith(null, { marque: 'Test', format: '' });
+    expect(fixture.nativeElement.textContent).toContain('Nouveau');
+    expect(fixture.nativeElement.textContent).not.toContain('Ancien');
+    expect(fixture.componentInstance.triCatalogue()).toBe('nom');
+    fixture.destroy();
   });
 
     it('limite les appels et ignore les réponses dépassées', async () => {
@@ -164,11 +213,62 @@ describe('Catalogue', () => {
     fixture.detectChanges();
     expect(bouton.getAttribute('aria-expanded')).toBe('true');
     expect(fixture.nativeElement.querySelector('#contenu-filtres').classList.contains('contenu-filtres--ouvert')).toBe(true);
-    const marque = fixture.nativeElement.querySelector('#filtre-marque') as HTMLInputElement;
-    marque.value = 'Nutella';
+    const format = fixture.nativeElement.querySelector('#filtre-format') as HTMLInputElement;
+    format.value = '400 g';
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
-    expect(consulter).toHaveBeenLastCalledWith(0, { marque: 'Nutella', format: '' });
+    expect(consulter).toHaveBeenLastCalledWith(0, { marque: '', format: '400 g' });
     fixture.destroy();
+  });
+
+  it('affiche les marques et sélectionne une seule marque sans saisie', async () => {
+    vi.useFakeTimers();
+    try {
+      consulter.mockReturnValue(of({ produits: [], prochainId: null }));
+      listerMarques.mockReturnValue(of([{ nom: 'Nutella', nombre: 2 }, { nom: 'Ferrero', nombre: 1 }]));
+      const fixture = TestBed.createComponent(Catalogue);
+      fixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(300);
+      fixture.detectChanges();
+      const option = fixture.nativeElement.querySelector('input[value="Nutella"]') as HTMLInputElement;
+      expect(option.closest('label')?.textContent).toContain('2');
+      option.click();
+      fixture.detectChanges();
+      expect(consulter).toHaveBeenLastCalledWith(0, { marque: 'Nutella', format: '' });
+      expect(fixture.componentInstance.filtres().marque).toBe('Nutella');
+      expect(fixture.nativeElement.querySelector('#filtre-marque')).toBeNull();
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('ignore les marques obsolètes et permet de réessayer en cas d’erreur', async () => {
+    vi.useFakeTimers();
+    try {
+      consulter.mockReturnValue(of({ produits: [], prochainId: null }));
+      rechercher.mockReturnValue(of({ produits: [], prochainCurseur: null }));
+      const ancienne = new Subject<{ nom: string; nombre: number }[]>();
+      listerMarques.mockReturnValueOnce(ancienne)
+        .mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 503 })))
+        .mockReturnValueOnce(of([{ nom: 'Nouvelle', nombre: 3 }]));
+      const fixture = TestBed.createComponent(Catalogue);
+      fixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(300);
+      fixture.componentInstance.rechercher('yaourt');
+      ancienne.next([{ nom: 'Ancienne', nombre: 5 }]);
+      await vi.advanceTimersByTimeAsync(300);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Impossible de charger les marques');
+      expect(fixture.nativeElement.textContent).not.toContain('Ancienne');
+      fixture.componentInstance.actualiserMarques();
+      await vi.advanceTimersByTimeAsync(300);
+      fixture.detectChanges();
+      expect(listerMarques).toHaveBeenLastCalledWith('yaourt', '');
+      expect(fixture.nativeElement.textContent).toContain('Nouvelle');
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('propose la suite seulement si elle existe et réessaie la page échouée', async () => {

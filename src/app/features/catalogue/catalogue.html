@@ -48,16 +48,47 @@
           <div id="contenu-filtres" class="contenu-filtres" [class.contenu-filtres--ouvert]="filtresOuverts()">
             <h2>Affiner</h2>
             <p class="aide-filtres">Trouve plus facilement ce que tu cherches.</p>
-            <form (submit)="$event.preventDefault(); appliquerFiltres(champMarque.value, champFormat.value)">
-              <label for="filtre-marque">Marque</label>
-              <input #champMarque id="filtre-marque" type="text" maxlength="255" placeholder="Ex. Nutella" />
-              <p>Nom exact d’une marque renseignée sur la fiche.</p>
+            <form (submit)="$event.preventDefault(); appliquerFiltres(filtres().marque, champFormat.value)">
+              <fieldset class="marques">
+                <legend>Marque</legend>
+                <label class="choix-marque">
+                  <input type="radio" name="marque" [checked]="!filtres().marque" (change)="choisirMarque('')" />
+                  <span>Toutes les marques</span>
+                </label>
+                @if (marqueSelectionneeAbsente()) {
+                  <label class="choix-marque">
+                    <input type="radio" name="marque" checked (change)="choisirMarque(filtres().marque)" />
+                    <span>{{ filtres().marque }} {{ !chargementMarques() && !erreurMarques() && !saisieTropCourte() ? '(0)' : '(sélectionnée)' }}</span>
+                  </label>
+                }
+                @if (chargementMarques()) {
+                  <p role="status">Chargement des marques…</p>
+                } @else if (erreurMarques()) {
+                  <p class="message-erreur" role="alert">{{ erreurMarques() }}</p>
+                  <button class="bouton bouton--secondaire" type="button" (click)="actualiserMarques()">Réessayer les marques</button>
+                } @else if (saisieTropCourte()) {
+                  <p>Saisis au moins 3 caractères pour voir les marques correspondantes.</p>
+                } @else if (marques().length === 0) {
+                  <p>Aucune marque renseignée pour ces résultats.</p>
+                } @else {
+                  <div class="liste-marques">
+                    @for (marque of marques(); track marque.nom) {
+                      <label class="choix-marque">
+                        <input type="radio" name="marque" [value]="marque.nom"
+                          [checked]="filtres().marque.toLowerCase() === marque.nom.toLowerCase()"
+                          (change)="choisirMarque(marque.nom)" />
+                        <span>{{ marque.nom }}</span><span class="nombre-marque">{{ marque.nombre }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </fieldset>
               <label for="filtre-format">Format</label>
               <input #champFormat id="filtre-format" type="text" maxlength="255" placeholder="Ex. 400 g" />
               <p>Une partie du format, sans conversion d’unités.</p>
               <button class="bouton" type="submit">Appliquer</button>
               <button class="bouton bouton--secondaire" type="button"
-                (click)="champMarque.value = ''; champFormat.value = ''; appliquerFiltres('', '')">Effacer les filtres</button>
+                (click)="champFormat.value = ''; appliquerFiltres('', '')">Effacer les filtres</button>
             </form>
           </div>
         </aside>
@@ -73,6 +104,16 @@
             }
           </div>
 
+          @if (!rechercheActive()) {
+            <div class="tri-catalogue">
+              <label for="tri-catalogue">Trier le catalogue</label>
+              <select #tri id="tri-catalogue" [value]="triCatalogue()" (change)="changerTri(tri.value)">
+                <option value="initial">Ordre du catalogue</option>
+                <option value="nom">Nom : A à Z</option>
+              </select>
+            </div>
+          }
+
           @if (rechercheEnCours()) {
             <p role="status">Recherche en cours…</p>
           } @else if (erreurRecherche()) {
@@ -86,7 +127,7 @@
           }
           @if (erreur()) {
             <p class="message-erreur" role="alert">{{ erreur() }}</p>
-            <button class="bouton bouton--secondaire" type="button" (click)="charger(produits().length ? prochainId() ?? 0 : 0)">Réessayer</button>
+            <button class="bouton bouton--secondaire" type="button" (click)="reessayerCatalogue()">Réessayer</button>
           }
 
           @if (!rechercheActive() && charge() && produits().length === 0 && !erreur()) {
@@ -137,7 +178,7 @@
                 </li>
               }
             </ul>
-            @if (!rechercheActive() && prochainId() !== null && !erreur()) {
+            @if (!rechercheActive() && (prochainId() !== null || prochainNom() !== null) && !erreur()) {
               <button class="bouton bouton--secondaire suite" type="button" [disabled]="chargement()" (click)="chargerSuite()">
                 {{ chargement() ? 'Chargement…' : 'Voir plus de produits' }}
               </button>

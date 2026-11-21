@@ -2,8 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { EMPTY, Subject, catchError, map, of, switchMap, timer } from 'rxjs';
-import { CatalogueApi, FiltresCatalogue, ProduitCatalogue } from './catalogue-api';
+import { EMPTY, Observable, Subject, catchError, map, of, switchMap, timer } from 'rxjs';
+import { CatalogueApi, FiltresCatalogue, MarqueCatalogue, ProduitCatalogue } from './catalogue-api';
 
 function longueurRecherche(texte: string): number {
   const normalise = texte.normalize('NFD').replace(/\p{M}+/gu, '')
@@ -21,10 +21,16 @@ export class Catalogue implements OnInit {
   private readonly api = inject(CatalogueApi);
   private readonly destroyRef = inject(DestroyRef);
   private readonly recherches = new Subject<{ texte: string; curseur: string | null; filtres: FiltresCatalogue }>();
-  private readonly consultations = new Subject<{ apres: number; filtres: FiltresCatalogue }>();
+  private readonly demandesMarques = new Subject<{ texte: string; format: string }>();
+  private readonly consultations = new Subject<
+    | { tri: 'initial'; apres: number; filtres: FiltresCatalogue }
+    | { tri: 'nom'; apres: string | null; filtres: FiltresCatalogue }
+  >();
 
   readonly produits = signal<ProduitCatalogue[]>([]);
   readonly prochainId = signal<number | null>(null);
+  readonly prochainNom = signal<string | null>(null);
+  readonly triCatalogue = signal<'initial' | 'nom'>('initial');
   readonly chargement = signal(false);
   readonly charge = signal(false);
   readonly nonConnecte = signal(false);
@@ -40,11 +46,41 @@ export class Catalogue implements OnInit {
   readonly erreurSuite = signal(false);
   readonly filtres = signal<FiltresCatalogue>({ marque: '', format: '' });
   readonly filtresOuverts = signal(false);
+  readonly marques = signal<MarqueCatalogue[]>([]);
+  readonly chargementMarques = signal(false);
+  readonly erreurMarques = signal('');
+  readonly saisieTropCourte = computed(() => this.saisie().trim().length > 0 && longueurRecherche(this.saisie()) < 3);
+  readonly marqueSelectionneeAbsente = computed(() => {
+    const marque = this.filtres().marque;
+    return !!marque && !this.marques().some((element) => element.nom.toLowerCase() === marque.toLowerCase());
+  });
   readonly filtresActifs = computed(() => !!(this.filtres().marque || this.filtres().format));
   readonly rechercheActive = computed(() => this.saisie().trim().length > 0);
   readonly produitsAffiches = computed(() => this.rechercheActive() ? this.suggestions() : this.produits());
 
   constructor() {
+    this.demandesMarques.pipe(
+      switchMap(({ texte, format }) => {
+        if (texte.trim() && longueurRecherche(texte) < 3) {
+          return EMPTY;
+        }
+        return timer(250).pipe(
+          switchMap(() => this.api.listerMarques(texte, format)),
+          map((marques) => ({ marques, erreur: null })),
+          catchError((erreur: unknown) => of({ marques: null, erreur })),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(({ marques, erreur }) => {
+      this.chargementMarques.set(false);
+      if (marques !== null) {
+        this.marques.set(marques);
+      } else if (erreur instanceof HttpErrorResponse && erreur.status === 401) {
+        this.nonConnecte.set(true);
+      } else {
+        this.erreurMarques.set('Impossible de charger les marques. Réessaie.');
+      }
+    });
     this.recherches.pipe(
       switchMap(({ texte, curseur, filtres }) => {
         if (longueurRecherche(texte) < 3) {
@@ -75,28 +111,40 @@ export class Catalogue implements OnInit {
       this.rechercheEffectuee.set(true);
     });
     this.consultations.pipe(
-      switchMap(({ apres, filtres }) => this.api.consulter(apres, filtres).pipe(
-        map((page) => ({ page, apres, erreur: null })),
-        catchError((erreur: unknown) => of({ page: null, apres, erreur })),
-      )),
+      switchMap((demande) => {
+        const premiere = demande.tri === 'nom' ? demande.apres === null : demande.apres === 0;
+        const page$: Observable<{ produits: ProduitCatalogue[]; prochainId: number | null; prochainNom: string | null }> = demande.tri === 'nom'
+          ? this.api.consulterParNom(demande.apres, demande.filtres).pipe(
+            map((page) => ({ produits: page.produits, prochainId: null, prochainNom: page.prochainCurseur })),
+          )
+          : this.api.consulter(demande.apres, demande.filtres).pipe(
+            map((page) => ({ produits: page.produits, prochainId: page.prochainId, prochainNom: null })),
+          );
+        return page$.pipe(
+          map((page) => ({ page, premiere, erreur: null })),
+          catchError((erreur: unknown) => of({ page: null, premiere, erreur })),
+        );
+      }),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(({ page, apres, erreur }) => {
+    ).subscribe(({ page, premiere, erreur }) => {
       this.chargement.set(false);
       if (page !== null) {
-        this.produits.update((produits) => apres === 0 ? page.produits : [...produits, ...page.produits]);
+        this.produits.update((produits) => premiere ? page.produits : [...produits, ...page.produits]);
         this.prochainId.set(page.prochainId);
+        this.prochainNom.set(page.prochainNom);
         this.charge.set(true);
       } else if (erreur instanceof HttpErrorResponse && erreur.status === 401) {
         this.nonConnecte.set(true);
         this.produits.set([]);
         this.prochainId.set(null);
+        this.prochainNom.set(null);
       } else {
         this.erreur.set('Je n’ai pas pu charger le catalogue. Réessaie dans un instant.');
       }
     });
   }
 
-  rechercher(texte: string): void {
+  rechercher(texte: string, actualiserFacettes = true): void {
     this.saisie.set(texte);
     this.suggestions.set([]);
     this.erreurRecherche.set('');
@@ -106,6 +154,9 @@ export class Catalogue implements OnInit {
     this.erreurSuite.set(false);
     this.rechercheEnCours.set(longueurRecherche(texte) >= 3);
     this.recherches.next({ texte, curseur: null, filtres: this.filtres() });
+    if (actualiserFacettes) {
+      this.actualiserMarques();
+    }
   }
 
   chargerResultats(): void {
@@ -121,13 +172,28 @@ export class Catalogue implements OnInit {
   }
 
   appliquerFiltres(marque: string, format: string): void {
-    this.filtres.set({ marque: marque.trim(), format: format.trim() });
+    const nouveauFormat = format.trim();
+    const formatModifie = nouveauFormat !== this.filtres().format;
+    this.filtres.set({ marque: marque.trim(), format: nouveauFormat });
     this.produits.set([]);
     this.prochainId.set(null);
+    this.prochainNom.set(null);
     this.charge.set(false);
     this.chargement.set(false);
-    this.charger(0);
-    this.rechercher(this.saisie());
+    this.chargerPremierePage();
+    this.rechercher(this.saisie(), formatModifie);
+  }
+
+  choisirMarque(marque: string): void {
+    this.appliquerFiltres(marque, this.filtres().format);
+  }
+
+  actualiserMarques(): void {
+    const texte = this.saisie();
+    this.marques.set([]);
+    this.erreurMarques.set('');
+    this.chargementMarques.set(!(texte.trim() && longueurRecherche(texte) < 3));
+    this.demandesMarques.next({ texte, format: this.filtres().format });
   }
 
   reessayerRecherche(): void {
@@ -143,7 +209,8 @@ export class Catalogue implements OnInit {
   }
 
   ngOnInit(): void {
-    this.charger(0);
+    this.chargerPremierePage();
+    this.actualiserMarques();
   }
 
   charger(apres: number): void {
@@ -153,10 +220,56 @@ export class Catalogue implements OnInit {
     this.chargement.set(true);
     this.erreur.set('');
     this.nonConnecte.set(false);
-    this.consultations.next({ apres, filtres: this.filtres() });
+    this.consultations.next({ tri: 'initial', apres, filtres: this.filtres() });
+  }
+
+  private chargerParNom(apres: string | null): void {
+    if (this.chargement()) {
+      return;
+    }
+    this.chargement.set(true);
+    this.erreur.set('');
+    this.nonConnecte.set(false);
+    this.consultations.next({ tri: 'nom', apres, filtres: this.filtres() });
+  }
+
+  private chargerPremierePage(): void {
+    if (this.triCatalogue() === 'nom') {
+      this.chargerParNom(null);
+    } else {
+      this.charger(0);
+    }
+  }
+
+  changerTri(tri: string): void {
+    if (tri !== 'nom' && tri !== 'initial') {
+      return;
+    }
+    this.triCatalogue.set(tri);
+    this.produits.set([]);
+    this.prochainId.set(null);
+    this.prochainNom.set(null);
+    this.charge.set(false);
+    this.chargement.set(false);
+    this.chargerPremierePage();
+  }
+
+  reessayerCatalogue(): void {
+    if (this.triCatalogue() === 'nom') {
+      this.chargerParNom(this.produits().length ? this.prochainNom() : null);
+    } else {
+      this.charger(this.produits().length ? this.prochainId() ?? 0 : 0);
+    }
   }
 
   chargerSuite(): void {
+    if (this.triCatalogue() === 'nom') {
+      const prochainNom = this.prochainNom();
+      if (prochainNom !== null) {
+        this.chargerParNom(prochainNom);
+      }
+      return;
+    }
     const prochainId = this.prochainId();
     if (prochainId !== null) {
       this.charger(prochainId);
