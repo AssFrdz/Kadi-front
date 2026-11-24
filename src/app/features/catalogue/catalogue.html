@@ -1,0 +1,208 @@
+<div class="page">
+  <header class="entete">
+    <div class="conteneur entete-interieur">
+      <a routerLink="/" aria-label="Kadi, accueil">
+        <img class="logo" src="logo-kadi.png" width="770" height="560" alt="Kadi" />
+      </a>
+      <span class="entete-titre">Le catalogue</span>
+      <a class="lien" routerLink="/">Retour à l’accueil</a>
+    </div>
+  </header>
+
+  <main class="conteneur contenu">
+    <div class="presentation">
+      <div>
+        <p class="sur-titre">TES COURSES, À TA FAÇON</p>
+        <h1>Trouve tes produits</h1>
+        <p class="intro">Recherche et explore le catalogue local. Pour composer tes courses, ouvre <a routerLink="/liste">ma liste</a>.</p>
+      </div>
+      <span class="pastille">Catalogue en construction</span>
+    </div>
+
+      <div class="recherche">
+        <label for="recherche-catalogue">Rechercher un produit</label>
+        <div class="barre-recherche">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" /><path d="m16 16 4 4" />
+          </svg>
+          <input #champRecherche id="recherche-catalogue" type="search" maxlength="255" autocomplete="off"
+            placeholder="Produit, marque, format…" [value]="saisie()" (input)="rechercher(champRecherche.value)"
+            aria-describedby="aide-recherche" />
+        </div>
+        <p id="aide-recherche">Dès 3 caractères, découvre jusqu’à 7 suggestions dans le catalogue local.</p>
+      </div>
+
+      <div class="disposition">
+        <aside class="panneau-filtres" aria-label="Filtres du catalogue">
+          <button class="toggle-filtres" type="button" [attr.aria-expanded]="filtresOuverts()"
+            aria-controls="contenu-filtres" (click)="filtresOuverts.set(!filtresOuverts())">
+            <span>Filtres @if (filtresActifs()) { <span class="indicateur">actifs</span> }</span>
+            <span aria-hidden="true">{{ filtresOuverts() ? '−' : '+' }}</span>
+          </button>
+          <div id="contenu-filtres" class="contenu-filtres" [class.contenu-filtres--ouvert]="filtresOuverts()">
+            <h2>Affiner</h2>
+            <p class="aide-filtres">Trouve plus facilement ce que tu cherches.</p>
+            <form (submit)="$event.preventDefault(); appliquerFiltres(filtres().marque, champFormat.value)">
+              <fieldset class="marques">
+                <legend>Marque</legend>
+                <label class="choix-marque">
+                  <input type="radio" name="marque" [checked]="!filtres().marque" (change)="choisirMarque('')" />
+                  <span>Toutes les marques</span>
+                </label>
+                @if (marqueSelectionneeAbsente()) {
+                  <label class="choix-marque">
+                    <input type="radio" name="marque" checked (change)="choisirMarque(filtres().marque)" />
+                    <span>{{ filtres().marque }} {{ !chargementMarques() && !erreurMarques() && !saisieTropCourte() ? '(0)' : '(sélectionnée)' }}</span>
+                  </label>
+                }
+                @if (chargementMarques()) {
+                  <p role="status">Chargement des marques…</p>
+                } @else if (erreurMarques()) {
+                  <p class="message-erreur" role="alert">{{ erreurMarques() }}</p>
+                  <button class="bouton bouton--secondaire" type="button" (click)="actualiserMarques()">Réessayer les marques</button>
+                } @else if (saisieTropCourte()) {
+                  <p>Saisis au moins 3 caractères pour voir les marques correspondantes.</p>
+                } @else if (marques().length === 0) {
+                  <p>Aucune marque renseignée pour ces résultats.</p>
+                } @else {
+                  <div class="liste-marques">
+                    @for (marque of marques(); track marque.nom) {
+                      <label class="choix-marque">
+                        <input type="radio" name="marque" [value]="marque.nom"
+                          [checked]="filtres().marque.toLowerCase() === marque.nom.toLowerCase()"
+                          (change)="choisirMarque(marque.nom)" />
+                        <span>{{ marque.nom }}</span><span class="nombre-marque">{{ marque.nombre }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </fieldset>
+              <label for="filtre-format">Format</label>
+              <input #champFormat id="filtre-format" type="text" maxlength="255" placeholder="Ex. 400 g" />
+              <p>Une partie du format, sans conversion d’unités.</p>
+              <button class="bouton" type="submit">Appliquer</button>
+              <button class="bouton bouton--secondaire" type="button"
+                (click)="champFormat.value = ''; appliquerFiltres('', '')">Effacer les filtres</button>
+            </form>
+          </div>
+        </aside>
+
+        <section class="resultats" aria-label="Catalogue et résultats">
+          <div class="resultats-entete">
+            <div>
+              <p class="sur-titre">À DÉCOUVRIR</p>
+              <h2>{{ rechercheActive() ? (tousResultats() ? 'Résultats de recherche' : 'Suggestions de produits') : 'Tous les produits' }}</h2>
+            </div>
+            @if (produitsAffiches().length > 0) {
+              <span class="compteur">{{ produitsAffiches().length }} affiché{{ produitsAffiches().length > 1 ? 's' : '' }}</span>
+            }
+          </div>
+
+          @if (!rechercheActive()) {
+            <div class="tri-catalogue">
+              <label for="tri-catalogue">Trier le catalogue</label>
+              <select #tri id="tri-catalogue" [value]="triCatalogue()" (change)="changerTri(tri.value)">
+                <option value="initial">Ordre du catalogue</option>
+                <option value="nom">Nom : A à Z</option>
+              </select>
+            </div>
+          }
+
+          @if (rechercheEnCours()) {
+            <p role="status">Recherche en cours…</p>
+          } @else if (erreurRecherche()) {
+            <p class="message-erreur" role="alert">{{ erreurRecherche() }}</p>
+            <button class="bouton bouton--secondaire" type="button" (click)="reessayerRecherche()">Réessayer la recherche</button>
+          } @else if (rechercheEffectuee() && suggestions().length === 0) {
+            <section class="carte etat">
+              <h2>Aucune suggestion pour cette recherche.</h2>
+              <p>Essaie une autre recherche ou modifie les filtres.</p>
+            </section>
+          }
+          @if (erreur()) {
+            <p class="message-erreur" role="alert">{{ erreur() }}</p>
+            <button class="bouton bouton--secondaire" type="button" (click)="reessayerCatalogue()">Réessayer</button>
+          }
+
+          @if (!rechercheActive() && charge() && produits().length === 0 && !erreur()) {
+            <section class="carte etat">
+              @if (filtresActifs()) {
+                <h2>Aucun produit ne correspond à ces filtres.</h2>
+                <p>Essaie de les modifier ou de les effacer. Les produits dont les informations requises sont absentes ne peuvent pas correspondre aux filtres actifs.</p>
+              } @else {
+                <h2>Il n’y a pas encore de produits ici.</h2>
+                <p>Le catalogue local n’a pas encore été alimenté.</p>
+              }
+            </section>
+          }
+
+          @if (produitsAffiches().length > 0) {
+            <ul class="grille" [attr.aria-label]="rechercheActive() ? (tousResultats() ? 'Résultats de recherche' : 'Suggestions de produits') : 'Produits du catalogue'">
+              @for (produit of produitsAffiches(); track produit.id) {
+                <li class="produit">
+                  @if (produit.imageUrl && !imagesIndisponibles().has(produit.id)) {
+                    <a class="illustration" [href]="produit.imageUrl" target="_blank" rel="noopener noreferrer"
+                      [attr.aria-label]="'Ouvrir la photo de ' + produit.libelle + ' dans un nouvel onglet'">
+                      <img class="photo" [src]="produit.imageUrl" [alt]="'Photo de ' + produit.libelle"
+                        loading="lazy" referrerpolicy="no-referrer" (error)="imageEnErreur(produit.id)" />
+                    </a>
+                  } @else {
+                    @let dessin = illustration(produit);
+                    <div class="illustration illustration--vide" role="img"
+                      [attr.aria-label]="dessin.famille + ' : photo non disponible'">
+                      <img [src]="dessin.src" alt="" width="72" height="72" />
+                      <span aria-hidden="true">Photo non disponible</span>
+                    </div>
+                  }
+                  <div class="produit-infos">
+                    <p class="marque">{{ produit.marque || 'Marque non renseignée' }}</p>
+                    <h3>{{ produit.libelle }}</h3>
+                    @if (produit.format) {
+                      <p class="format">{{ produit.format }}</p>
+                    }
+                    <button class="bouton ajout-liste" type="button" [disabled]="ajoutEnCours() !== null"
+                      [attr.aria-label]="'Ajouter ' + produit.libelle + ' à ma liste'" (click)="ajouterALaListe(produit)">
+                      {{ ajoutEnCours() === produit.id ? 'Ajout…' : '+ Ajouter à ma liste' }}
+                    </button>
+                    @if (retourAjout(); as retour) {
+                      @if (retour.id === produit.id) {
+                        <p class="retour-ajout" [class.retour-ajout--erreur]="retour.erreur"
+                          [attr.role]="retour.erreur ? 'alert' : 'status'">
+                          {{ retour.texte }}
+                          @if (!retour.erreur) { <a routerLink="/liste">Voir ma liste</a> }
+                        </p>
+                      }
+                    }
+                    @if (produit.sourceUrl) {
+                      <p class="credit">
+                        Données : <a [href]="produit.sourceUrl">Open Food Facts</a>,
+                        <a href="https://opendatacommons.org/licenses/odbl/1.0/">ODbL</a>.
+                        @if (produit.imageUrl && !imagesIndisponibles().has(produit.id)) {
+                          Photo : {{ produit.imageAuteur }} / Open Food Facts,
+                          <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>
+                          (image sélectionnée et redimensionnée par Open Food Facts).
+                        }
+                      </p>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+            @if (!rechercheActive() && (prochainId() !== null || prochainNom() !== null) && !erreur()) {
+              <button class="bouton bouton--secondaire suite" type="button" [disabled]="chargement()" (click)="chargerSuite()">
+                {{ chargement() ? 'Chargement…' : 'Voir plus de produits' }}
+              </button>
+            }
+            @if (rechercheActive() && prochainCurseur() !== null && !erreurRecherche()) {
+              <button class="bouton bouton--secondaire suite" type="button" [disabled]="rechercheEnCours()" (click)="chargerResultats()">
+                {{ tousResultats() ? 'Voir plus de résultats' : 'Voir tous les résultats' }}
+              </button>
+            }
+          }
+          @if (chargement()) {
+            <p role="status">Je prépare le catalogue…</p>
+          }
+        </section>
+      </div>
+  </main>
+</div>

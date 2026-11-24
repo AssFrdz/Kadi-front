@@ -1,0 +1,104 @@
+<div class="page">
+  <header class="entete">
+    <div class="conteneur entete-interieur">
+      <a routerLink="/" aria-label="Kadi, accueil">
+        <img class="logo" src="logo-kadi.png" width="770" height="560" alt="Kadi" />
+      </a>
+      <span class="entete-titre">Modération</span>
+      <nav class="liens" aria-label="Navigation">
+        <a class="lien" routerLink="/catalogue">Catalogue</a>
+        <a class="lien" routerLink="/liste">Ma liste</a>
+        <a class="lien" routerLink="/">Accueil</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="conteneur contenu">
+    <p class="sur-titre">ESPACE ADMINISTRATEUR</p>
+    <h1>Besoins proposés</h1>
+    <p class="intro">Les utilisateurs proposent des besoins que le catalogue ne connaît pas. Accepte-les pour les proposer à tous,
+      en corrigeant le libellé ou en les rattachant à un besoin existant, ou refuse-les : ils restent alors privés.
+      La liste de l’auteur garde toujours sa saisie d’origine.</p>
+
+    @if (!estAdministrateur()) {
+      <section class="carte etat" role="alert">
+        <h2>Réservé à l’administrateur</h2>
+        <p>Choisis « Admin Kadi » dans la liste « Utilisateur actuel », en haut de la page.</p>
+      </section>
+    } @else {
+      <div class="onglets" role="group" aria-label="Filtrer les propositions">
+        @for (onglet of onglets; track onglet.statut) {
+          <button type="button" class="onglet" [class.onglet--actif]="statut() === onglet.statut"
+            [attr.aria-pressed]="statut() === onglet.statut" (click)="choisirOnglet(onglet.statut)">{{ onglet.libelle }}</button>
+        }
+      </div>
+
+      <p class="message-succes" role="status">{{ message() }}</p>
+      @if (erreur()) {
+        <p class="message-erreur" role="alert">{{ erreur() }}</p>
+      }
+
+      @if (chargement()) {
+        <p class="etat-liste" role="status">Chargement des propositions…</p>
+      } @else if (propositions().length === 0) {
+        <p class="etat-liste">
+          @switch (statut()) {
+            @case ('EN_ATTENTE') { Aucune proposition en attente. Une saisie ajoutée avec « + L’ajouter quand même » apparaîtra ici. }
+            @case ('VALIDE') { Aucune proposition acceptée pour l’instant. }
+            @default { Aucune proposition refusée. }
+          }
+        </p>
+      } @else {
+        <ul class="propositions">
+          @for (proposition of propositions(); track proposition.id) {
+            <li class="carte proposition">
+              <div class="proposition__entete">
+                <h2 class="proposition__libelle">{{ proposition.libelle }}</h2>
+                <p class="proposition__auteur">Proposé par {{ proposition.auteur }}
+                  @if (proposition.creeLe) { · le {{ dateCourte(proposition.creeLe) }} }</p>
+              </div>
+
+              @if (proposition.statut === 'EN_ATTENTE') {
+                <div class="champs">
+                  <label>Libellé publié
+                    <input #libelle type="text" maxlength="255" [value]="proposition.libelle" />
+                  </label>
+                  <label>Rattacher à un besoin existant
+                    <select #rattachement>
+                      <option value="">Non, créer un nouveau besoin</option>
+                      @for (besoin of generiques(); track besoin.id) {
+                        <option [value]="besoin.id">{{ besoin.libelle }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label>Nature du nouveau besoin
+                    <select #nature>
+                      <option value="">Choisir…</option>
+                      @for (n of natures; track n.valeur) {
+                        <option [value]="n.valeur">{{ n.libelle }}</option>
+                      }
+                    </select>
+                  </label>
+                </div>
+                <div class="actions">
+                  <button class="bouton" type="button" [disabled]="enCours() !== null"
+                    (click)="accepter(proposition, libelle.value, nature.value, rattachement.value)">
+                    {{ enCours() === proposition.id ? 'Envoi…' : 'Accepter' }}</button>
+                  <button class="bouton bouton--secondaire" type="button" [disabled]="enCours() !== null"
+                    (click)="refuser(proposition)">Refuser</button>
+                </div>
+              } @else if (proposition.statut === 'VALIDE') {
+                <p class="decision decision--acceptee">Accepté
+                  @if (proposition.libelleCommun && proposition.libelleCommun !== proposition.libelle) {
+                    sous le libellé « {{ proposition.libelleCommun }} »
+                  }</p>
+              } @else {
+                <p class="decision decision--refusee">Refusé : reste privé pour son auteur.</p>
+              }
+            </li>
+          }
+        </ul>
+      }
+    }
+  </main>
+</div>

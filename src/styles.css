@@ -1,0 +1,6 @@
+@import '@fontsource-variable/fredoka/index.css';
+@import '@fontsource-variable/instrument-sans/index.css';
+@import '@fontsource/dm-mono/400.css';
+@import './styles/tokens.css';
+@import './styles/base.css';
+@import './styles/components.css';

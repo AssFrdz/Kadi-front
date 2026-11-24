@@ -1,0 +1,64 @@
+/*
+ * Tokens de la charte Kadi : seule source des valeurs de design.
+ * Une feature n'écrit jamais de couleur, de rayon ou d'espacement en dur : elle consomme ces variables.
+ */
+:root {
+  /* Verts du logo */
+  --foret: #0c3d26;
+  --panier: #1e6e41;
+  --feuille: #86c92f;
+  --menthe: #bde2b3;
+  --menthe-claire: #dcefd5;
+
+  /* Papier et encre */
+  --papier: #f5f0e4;
+  --papier-fonce: #ebe4d2;
+  --blanc: #fffdf7;
+  --encre: var(--foret);
+  --encre-douce: #51675a;
+
+  /* Accents, à employer avec parcimonie (moins de 10 % d'un écran) */
+  --beurre: #f7dd72;
+  --tomate: #e8553b;
+  --tomate-claire: #fbd9d0;
+
+  /* Rôles */
+  --fond: var(--papier);
+  --surface: var(--blanc);
+  --action: var(--panier);
+  --action-survol: var(--foret);
+  --trait: var(--foret);
+  --trait-doux: rgb(12 61 38 / 18%);
+  --erreur: #b3321b;
+  --focus: #1456c8;
+
+  /* Typographie */
+  --police-titre: 'Fredoka Variable', 'Arial Rounded MT Bold', system-ui, sans-serif;
+  --police-texte: 'Instrument Sans Variable', system-ui, sans-serif;
+  --police-ticket: 'DM Mono', ui-monospace, monospace;
+
+  /* Échelle d'espacement */
+  --e1: 4px;
+  --e2: 8px;
+  --e3: 12px;
+  --e4: 16px;
+  --e5: 24px;
+  --e6: 32px;
+  --e7: 48px;
+  --e8: 72px;
+  --e9: 112px;
+
+  /* Formes */
+  --rayon-s: 10px;
+  --rayon-m: 18px;
+  --rayon-l: 32px;
+  --rayon-pilule: 999px;
+  --epaisseur: 2px;
+
+  /* Relief « autocollant » : ombre pleine, sans flou */
+  --relief: 0 4px 0 var(--trait);
+  --relief-m: 0 6px 0 var(--trait);
+
+  --duree: 140ms;
+  --courbe: cubic-bezier(0.3, 0.7, 0.2, 1);
+}
