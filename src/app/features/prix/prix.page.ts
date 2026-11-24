@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MagasinsApi, MagasinTrouve } from '../../core/api/magasins-api';
 import { PrixApi, PrixDeReference } from '../../core/api/prix-api';
 import { ProduitsApi, ProduitTrouve } from '../../core/api/produits-api';
@@ -22,9 +23,10 @@ type Etat =
  */
 @Component({
   selector: 'app-prix',
-  imports: [ChampDeRecherche, BadgeConfiance, DetailReleves],
+  imports: [ChampDeRecherche, BadgeConfiance, DetailReleves, RouterLink],
   template: `
     <h1>Prix d'un produit</h1>
+    <p><a routerLink="/prix/ajouter">+ Ajouter un prix</a></p>
 
     <div class="choix">
       <app-champ-de-recherche
