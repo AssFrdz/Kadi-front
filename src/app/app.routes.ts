@@ -7,20 +7,9 @@ export const routes: Routes = [
     loadComponent: () => import('./features/catalogue/catalogue').then((m) => m.Catalogue),
   },
   {
-    path: 'connexion',
-    title: 'Se connecter — Kadi',
-    loadComponent: () => import('./features/compte/connexion/connexion').then((m) => m.Connexion),
-  },
-  {
-    path: 'inscription',
-    title: 'Créer un compte — Kadi',
-    loadComponent: () => import('./features/compte/inscription/inscription').then((m) => m.Inscription),
-  },
-  {
-    path: 'verification-email',
-    title: 'Vérifier mon adresse e-mail — Kadi',
-    loadComponent: () =>
-      import('./features/compte/verification-email/verification-email').then((m) => m.VerificationEmail),
+    path: 'liste',
+    title: 'Ma liste — Kadi',
+    loadComponent: () => import('./features/liste/liste').then((m) => m.Liste),
   },
   {
     path: '',

@@ -1,0 +1,17 @@
+<div class="bandeau" role="region" aria-label="Utilisateur simulé">
+  <label for="utilisateur-actuel">Utilisateur actuel</label>
+  <select id="utilisateur-actuel" [value]="service.id() ?? ''" (change)="changer($any($event.target).value)">
+    @if (service.id() === null) {
+      <option value="">Choisir un profil…</option>
+    }
+    @for (utilisateur of service.utilisateurs(); track utilisateur.id) {
+      <option [value]="utilisateur.id" [selected]="utilisateur.id === service.id()">
+        {{ utilisateur.nomAffiche }} — {{ libellesRoles[utilisateur.role] }}
+      </option>
+    }
+  </select>
+  <span class="note">Démonstration : pas de connexion, le profil est simulé.</span>
+  @if (service.erreur()) {
+    <span class="erreur" role="alert">{{ service.erreur() }}</span>
+  }
+</div>

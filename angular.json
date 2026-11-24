@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -48,6 +49,14 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "nutri-score-experimental": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/features/catalogue/nutri-score-configuration.ts",
+                  "with": "src/app/features/catalogue/nutri-score-configuration.experimental.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -60,6 +69,9 @@
             },
             "development": {
               "buildTarget": "kadi:build:development"
+            },
+            "nutri-score-experimental": {
+              "buildTarget": "kadi:build:development,nutri-score-experimental"
             }
           },
           "defaultConfiguration": "development"

@@ -1,0 +1,76 @@
+<div class="recherche-produit">
+  <label class="champ__libelle" [for]="identifiant">{{ libelle() }}</label>
+  <input
+    class="champ__saisie"
+    type="search"
+    autocomplete="off"
+    maxlength="255"
+    role="combobox"
+    aria-autocomplete="list"
+    [id]="identifiant"
+    [placeholder]="placeholder()"
+    [value]="saisie()"
+    [attr.aria-expanded]="listeVisible()"
+    [attr.aria-controls]="identifiant + '-liste'"
+    [attr.aria-activedescendant]="idActif()"
+    [attr.aria-describedby]="identifiant + '-aide'"
+    (input)="saisir($any($event.target).value)"
+    (keydown)="clavier($event)"
+    (focus)="ouvrir()"
+    (blur)="fermerPlusTard()"
+  />
+  <p class="champ__aide" [id]="identifiant + '-aide'">
+    Dès {{ longueurMinimale() }} caractères. Tape uniquement les chiffres pour un code-barres.
+  </p>
+
+  @if (listeVisible()) {
+    <div class="panneau">
+      @if (chargement()) {
+        <p class="etat" role="status">Recherche…</p>
+      } @else if (nonConnecte()) {
+        <p class="etat" role="alert">Choisis un utilisateur dans la liste « Utilisateur actuel » pour chercher dans ta liste.</p>
+      } @else if (erreur()) {
+        <p class="etat etat--erreur" role="alert">
+          La recherche n’a pas abouti.
+          <button class="bouton bouton--secondaire" type="button" (mousedown)="$event.preventDefault()" (click)="reessayer()">Réessayer</button>
+        </p>
+      } @else if (resultats().length === 0) {
+        <p class="etat" role="status">Aucun produit ne correspond.</p>
+      }
+
+      @if (!chargement() && !erreur() && !nonConnecte() && resultats().length > 0) {
+        <div [id]="identifiant + '-liste'" role="listbox" [attr.aria-label]="libelle()">
+          @for (produit of suggestions(); track produit.type + '-' + produit.id; let index = $index) {
+            <div
+              class="option"
+              role="option"
+              [id]="identifiant + '-option-' + index"
+              [class.option--active]="index === actif()"
+              [attr.aria-selected]="index === actif()"
+              (mousedown)="$event.preventDefault()"
+              (click)="choisir(produit)"
+            >
+              <span class="option__libelle">{{ produit.libelle }}</span>
+              <span class="option__details">
+                @switch (produit.type) {
+                  @case ('BESOIN_GENERIQUE') { <span class="pastille pastille--neutre">Référence non précisée</span> }
+                  @case ('BESOIN_PERSONNALISE') { <span class="pastille pastille--tomate">Mon besoin</span> }
+                }
+                @if (produit.marque) { <span>{{ produit.marque }}</span> }
+                @if (produit.quantite) { <span>{{ produit.quantite }}</span> }
+                @if (produit.codeBarres) { <span class="option__code">{{ produit.codeBarres }}</span> }
+                @if (produit.confiance === 'A_CONFIRMER') { <span class="pastille pastille--beurre">À confirmer</span> }
+              </span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (proposerAjoutLibre()) {
+        <button class="ajout-libre" type="button" (mousedown)="$event.preventDefault()" (click)="ajouterLibrement()">
+          + L’ajouter quand même : « {{ saisie().trim() }} »
+        </button>
+      }
+    </div>
+  }
+</div>

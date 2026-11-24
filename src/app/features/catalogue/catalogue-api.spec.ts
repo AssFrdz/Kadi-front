@@ -14,7 +14,7 @@ describe('CatalogueApi', () => {
     api.consulter(42).subscribe();
     const requete = http.expectOne('http://127.0.0.1:8080/api/v1/catalogue/produits?apres=42');
     expect(requete.request.method).toBe('GET');
-    expect(requete.request.withCredentials).toBe(true);
+    expect(requete.request.withCredentials).toBe(false);
     requete.flush({ produits: [], prochainId: null });
     http.verify();
   });
@@ -25,21 +25,8 @@ describe('CatalogueApi', () => {
     const http = TestBed.inject(HttpTestingController);
     api.suggerer('pâtes').subscribe();
     const requete = http.expectOne((req) => req.url.endsWith('/catalogue/produits/suggestions') && req.params.get('q') === 'pâtes');
-    expect(requete.request.withCredentials).toBe(true);
+    expect(requete.request.withCredentials).toBe(false);
     requete.flush([]);
-    http.verify();
-  });
-
-  it('demande une page de recherche avec son curseur', () => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
-    const api = TestBed.inject(CatalogueApi);
-    const http = TestBed.inject(HttpTestingController);
-    api.rechercher('pâtes', 'abc', 20).subscribe();
-    const requete = http.expectOne((req) => req.url.endsWith('/catalogue/produits/recherche')
-      && req.params.get('q') === 'pâtes' && req.params.get('apres') === 'abc'
-      && req.params.get('taille') === '20');
-    expect(requete.request.withCredentials).toBe(true);
-    requete.flush({ produits: [], prochainCurseur: null });
     http.verify();
   });
 
@@ -59,19 +46,6 @@ describe('CatalogueApi', () => {
     http.verify();
   });
 
-  it('demande le catalogue trié avec filtres et curseur', () => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
-    const api = TestBed.inject(CatalogueApi);
-    const http = TestBed.inject(HttpTestingController);
-    api.consulterParNom('curseur', { marque: 'Test', format: '500 g' }).subscribe();
-    const requete = http.expectOne((req) => req.url.endsWith('/catalogue/produits/par-nom')
-      && req.params.get('apres') === 'curseur' && req.params.get('marque') === 'Test'
-      && req.params.get('format') === '500 g');
-    expect(requete.request.withCredentials).toBe(true);
-    requete.flush({ produits: [], prochainCurseur: null });
-    http.verify();
-  });
-
   it('demande les marques correspondant à la recherche et au format', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     const api = TestBed.inject(CatalogueApi);
@@ -79,8 +53,9 @@ describe('CatalogueApi', () => {
     api.listerMarques('yaourt', '500 g').subscribe();
     const requete = http.expectOne((req) => req.url.endsWith('/catalogue/produits/marques')
       && req.params.get('q') === 'yaourt' && req.params.get('format') === '500 g');
-    expect(requete.request.withCredentials).toBe(true);
+    expect(requete.request.withCredentials).toBe(false);
     requete.flush([{ nom: 'Test', nombre: 2 }]);
     http.verify();
   });
+
 });

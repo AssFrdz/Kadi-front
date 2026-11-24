@@ -27,7 +27,10 @@ export interface PageRecherche {
 export interface FiltresCatalogue {
   marque: string;
   format: string;
+  nutriScores?: readonly NutriScore[];
 }
+
+export type NutriScore = 'A' | 'B' | 'C' | 'D' | 'E';
 
 export interface MarqueCatalogue {
   nom: string;
@@ -41,7 +44,6 @@ export class CatalogueApi {
   consulter(apres: number, filtres: FiltresCatalogue = { marque: '', format: '' }): Observable<PageCatalogue> {
     return this.http.get<PageCatalogue>(`${BASE_API}/catalogue/produits`, {
       params: this.ajouterFiltres(new HttpParams().set('apres', apres), filtres),
-      withCredentials: true,
     });
   }
 
@@ -52,25 +54,25 @@ export class CatalogueApi {
     }
     return this.http.get<PageRecherche>(`${BASE_API}/catalogue/produits/par-nom`, {
       params,
-      withCredentials: true,
     });
   }
 
-  listerMarques(q: string, format: string): Observable<MarqueCatalogue[]> {
+  listerMarques(q: string, format: string, nutriScores: readonly NutriScore[] = []): Observable<MarqueCatalogue[]> {
     let params = new HttpParams().set('q', q);
     if (format) {
       params = params.set('format', format);
     }
+    for (const score of nutriScores) {
+      params = params.append('nutriScore', score);
+    }
     return this.http.get<MarqueCatalogue[]>(`${BASE_API}/catalogue/produits/marques`, {
       params,
-      withCredentials: true,
     });
   }
 
-  suggerer(q: string): Observable<ProduitCatalogue[]> {
+  suggerer(q: string, filtres: FiltresCatalogue = { marque: '', format: '' }): Observable<ProduitCatalogue[]> {
     return this.http.get<ProduitCatalogue[]>(`${BASE_API}/catalogue/produits/suggestions`, {
-      params: new HttpParams().set('q', q),
-      withCredentials: true,
+      params: this.ajouterFiltres(new HttpParams().set('q', q), filtres),
     });
   }
 
@@ -81,7 +83,6 @@ export class CatalogueApi {
     }
     return this.http.get<PageRecherche>(`${BASE_API}/catalogue/produits/recherche`, {
       params,
-      withCredentials: true,
     });
   }
 
@@ -91,6 +92,9 @@ export class CatalogueApi {
     }
     if (filtres.format) {
       params = params.set('format', filtres.format);
+    }
+    for (const score of filtres.nutriScores ?? []) {
+      params = params.append('nutriScore', score);
     }
     return params;
   }

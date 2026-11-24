@@ -14,17 +14,11 @@
       <div>
         <p class="sur-titre">TES COURSES, À TA FAÇON</p>
         <h1>Trouve tes produits</h1>
-        <p class="intro">Recherche et explore le catalogue local. L’ajout à une liste arrivera bientôt.</p>
+        <p class="intro">Recherche et explore le catalogue local. Pour composer tes courses, ouvre <a routerLink="/liste">ma liste</a>.</p>
       </div>
       <span class="pastille">Catalogue en construction</span>
     </div>
 
-    @if (nonConnecte()) {
-      <section class="carte etat">
-        <h2>Pour voir le catalogue, connecte-toi.</h2>
-        <a class="bouton" routerLink="/connexion">Se connecter</a>
-      </section>
-    } @else {
       <div class="recherche">
         <label for="recherche-catalogue">Rechercher un produit</label>
         <div class="barre-recherche">
@@ -83,12 +77,25 @@
                   </div>
                 }
               </fieldset>
+              @if (nutriScoreActif) {
+                <fieldset class="marques nutri-scores" aria-describedby="aide-nutri-score">
+                  <legend>Nutri-Score</legend>
+                  @for (score of notesNutriScore; track score) {
+                    <label class="choix-marque">
+                      <input #note type="checkbox" [checked]="filtres().nutriScores?.includes(score) ?? false"
+                        (change)="choisirNutriScore(score, note.checked)" />
+                      <span>{{ score }}</span>
+                    </label>
+                  }
+                  <p id="aide-nutri-score">Les produits sans note renseignée sont exclus lorsqu’un score est sélectionné.</p>
+                </fieldset>
+              }
               <label for="filtre-format">Format</label>
               <input #champFormat id="filtre-format" type="text" maxlength="255" placeholder="Ex. 400 g" />
               <p>Une partie du format, sans conversion d’unités.</p>
               <button class="bouton" type="submit">Appliquer</button>
               <button class="bouton bouton--secondaire" type="button"
-                (click)="champFormat.value = ''; appliquerFiltres('', '')">Effacer les filtres</button>
+                (click)="champFormat.value = ''; appliquerFiltres('', '', [])">Effacer les filtres</button>
             </form>
           </div>
         </aside>
@@ -134,7 +141,7 @@
             <section class="carte etat">
               @if (filtresActifs()) {
                 <h2>Aucun produit ne correspond à ces filtres.</h2>
-                <p>Essaie de les modifier ou de les effacer. Les produits sans marque ou format renseignés ne peuvent pas correspondre à ces filtres.</p>
+                <p>Essaie de les modifier ou de les effacer. Les produits dont les informations requises sont absentes ne peuvent pas correspondre aux filtres actifs.</p>
               } @else {
                 <h2>Il n’y a pas encore de produits ici.</h2>
                 <p>Le catalogue local n’a pas encore été alimenté.</p>
@@ -147,10 +154,11 @@
               @for (produit of produitsAffiches(); track produit.id) {
                 <li class="produit">
                   @if (produit.imageUrl && !imagesIndisponibles().has(produit.id)) {
-                    <div class="illustration">
+                    <a class="illustration" [href]="produit.imageUrl" target="_blank" rel="noopener noreferrer"
+                      [attr.aria-label]="'Ouvrir la photo de ' + produit.libelle + ' dans un nouvel onglet'">
                       <img class="photo" [src]="produit.imageUrl" [alt]="'Photo de ' + produit.libelle"
                         loading="lazy" referrerpolicy="no-referrer" (error)="imageEnErreur(produit.id)" />
-                    </div>
+                    </a>
                   } @else {
                     <div class="illustration illustration--vide" aria-label="Photo non disponible">
                       <img src="favicon.svg" alt="" width="58" height="58" />
@@ -162,6 +170,19 @@
                     <h3>{{ produit.libelle }}</h3>
                     @if (produit.format) {
                       <p class="format">{{ produit.format }}</p>
+                    }
+                    <button class="bouton ajout-liste" type="button" [disabled]="ajoutEnCours() !== null"
+                      [attr.aria-label]="'Ajouter ' + produit.libelle + ' à ma liste'" (click)="ajouterALaListe(produit)">
+                      {{ ajoutEnCours() === produit.id ? 'Ajout…' : '+ Ajouter à ma liste' }}
+                    </button>
+                    @if (retourAjout(); as retour) {
+                      @if (retour.id === produit.id) {
+                        <p class="retour-ajout" [class.retour-ajout--erreur]="retour.erreur"
+                          [attr.role]="retour.erreur ? 'alert' : 'status'">
+                          {{ retour.texte }}
+                          @if (!retour.erreur) { <a routerLink="/liste">Voir ma liste</a> }
+                        </p>
+                      }
                     }
                     @if (produit.sourceUrl) {
                       <p class="credit">
@@ -194,6 +215,5 @@
           }
         </section>
       </div>
-    }
   </main>
 </div>

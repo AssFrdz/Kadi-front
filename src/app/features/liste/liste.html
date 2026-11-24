@@ -1,0 +1,167 @@
+<div class="page">
+  <header class="entete">
+    <div class="conteneur entete-interieur">
+      <a routerLink="/" aria-label="Kadi, accueil">
+        <img class="logo" src="logo-kadi.png" width="770" height="560" alt="Kadi" />
+      </a>
+      <span class="entete-titre">Ma liste</span>
+      <nav class="liens" aria-label="Navigation">
+        <a class="lien" routerLink="/catalogue">Catalogue</a>
+        <a class="lien" routerLink="/">Accueil</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="conteneur contenu">
+    <p class="sur-titre">TES COURSES, À TA FAÇON</p>
+    <h1>Ma liste de courses</h1>
+
+    @if (nonConnecte()) {
+      <section class="carte etat" role="alert">
+        <h2>Choisis un utilisateur pour voir sa liste.</h2>
+        <p>Sélectionne un profil dans la liste « Utilisateur actuel » en haut de la page : chaque profil a sa propre liste.</p>
+      </section>
+    } @else {
+      <section class="ajout carte" aria-labelledby="titre-ajout">
+        <h2 id="titre-ajout">Ajouter à ma liste</h2>
+        <kadi-recherche-produit
+          libelle="Que te faut-il ?"
+          placeholder="lait, pâtes barilla, coca 6…"
+          portee="liste"
+          [longueurMinimale]="3"
+          [nombreMaximal]="7"
+          (produitChoisi)="choisir($event)"
+          (ajouterQuandMeme)="ajouterQuandMeme($event)"
+        />
+
+        @if (selection(); as choix) {
+          <form class="formulaire-ajout" novalidate (submit)="$event.preventDefault(); ajouter()" aria-label="Préciser l’ajout">
+            <div class="choix">
+              @if (choix.type === 'BESOIN_PERSONNALISE') {
+                <label class="champ">
+                  <span class="champ__libelle">Mon besoin personnel</span>
+                  <input class="champ__saisie" type="text" maxlength="255" required [value]="choix.libelle"
+                    (input)="selection.set({ ...choix, libelle: $any($event.target).value })" />
+                  <span class="champ__aide">Il reste privé et sera proposé à la validation d’un administrateur.</span>
+                </label>
+              } @else {
+                <p class="choix__libelle">{{ choix.libelle }}</p>
+                <p class="choix__details">
+                  @if (choix.type === 'BESOIN_GENERIQUE') { <span class="pastille pastille--neutre">Référence non précisée</span> }
+                  @else { <span class="pastille">Produit précis</span> }
+                  @if (choix.details) { <span>{{ choix.details }}</span> }
+                </p>
+              }
+            </div>
+
+            <div class="quantite">
+              <label class="champ">
+                <span class="champ__libelle">Quantité</span>
+                <input class="champ__saisie" type="number" inputmode="decimal" min="0" required
+                  [step]="pasQuantite()" [value]="quantite()" (input)="quantite.set($any($event.target).value)" />
+              </label>
+              <label class="champ">
+                <span class="champ__libelle">Unité</span>
+                <select class="champ__saisie" [value]="unite()" (change)="unite.set($any($event.target).value)"
+                  [disabled]="choix.unites.length === 1">
+                  @for (choixUnite of choix.unites; track choixUnite) {
+                    <option [value]="choixUnite" [selected]="choixUnite === unite()">{{ libellesUnites[choixUnite] }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+
+            @if (formatPossible()) {
+              <label class="champ">
+                <span class="champ__libelle">Format souhaité <span class="facultatif">(facultatif)</span></span>
+                <input class="champ__saisie" type="text" maxlength="255" placeholder="ex. sachet de 1 kg"
+                  [value]="formatSouhaite()" (input)="formatSouhaite.set($any($event.target).value)" />
+              </label>
+            }
+
+            <div class="actions">
+              <button class="bouton" type="submit" [disabled]="envoi()">Ajouter à ma liste</button>
+              <button class="bouton bouton--secondaire" type="button" (click)="annulerSelection()">Annuler</button>
+            </div>
+          </form>
+        }
+
+        @if (confirmation(); as aConfirmer) {
+          <div class="carte confirmation" role="alertdialog" aria-labelledby="titre-confirmation">
+            <h3 id="titre-confirmation">Fusionner avec une ligne existante ?</h3>
+            <p>
+              Ta liste contient déjà « {{ aConfirmer.ligne.libelle }} »
+              @if (aConfirmer.ligne.formatSouhaite) { ({{ aConfirmer.ligne.formatSouhaite }}) }
+              — {{ quantiteAffichee(aConfirmer.ligne) }}. Le format saisi ressemble à celui-ci.
+            </p>
+            <div class="actions">
+              <button class="bouton" type="button" [disabled]="envoi()" (click)="confirmer(true)">Fusionner</button>
+              <button class="bouton bouton--secondaire" type="button" [disabled]="envoi()" (click)="confirmer(false)">
+                Garder deux lignes
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (erreurAction()) {
+          <p class="message-erreur" role="alert">{{ erreurAction() }}</p>
+        }
+        <p class="message-succes" role="status">{{ message() }}</p>
+      </section>
+
+      <section class="lignes" aria-labelledby="titre-lignes">
+        <h2 id="titre-lignes">
+          Mes articles
+          @if (!chargement() && !erreurChargement()) { <span class="compteur">{{ lignes().length }}</span> }
+        </h2>
+
+        @if (chargement()) {
+          <p class="etat-liste" role="status">Chargement de ta liste…</p>
+        } @else if (erreurChargement()) {
+          <div class="carte etat" role="alert">
+            <p>{{ erreurChargement() }}</p>
+            <button class="bouton bouton--secondaire" type="button" (click)="charger()">Réessayer</button>
+          </div>
+        } @else if (lignes().length === 0) {
+          <p class="etat-liste">Ta liste est vide. Cherche un produit ci-dessus pour commencer.</p>
+        } @else {
+          <ul class="liste" aria-label="Lignes de ma liste">
+            @for (ligne of lignes(); track ligne.id) {
+              <li class="ligne" [attr.data-type]="ligne.type">
+                <div class="ligne__texte">
+                  <span class="ligne__libelle">{{ ligne.libelle }}</span>
+                  <span class="ligne__details">
+                    <span class="type" [class.type--personnel]="ligne.type === 'BESOIN_PERSONNALISE'">{{ libelleType(ligne) }}</span>
+                    @if (ligne.marque) { <span>{{ ligne.marque }}</span> }
+                    @if (ligne.formatProduit) { <span>{{ ligne.formatProduit }}</span> }
+                    @if (ligne.formatSouhaite) { <span>Format : {{ ligne.formatSouhaite }}</span> }
+                  </span>
+                </div>
+
+                @if (edition() === ligne.id) {
+                  <form class="edition" novalidate (submit)="$event.preventDefault(); enregistrerQuantite(ligne)">
+                    <label class="visuellement-cache" [for]="'quantite-' + ligne.id">Nouvelle quantité de {{ ligne.libelle }}</label>
+                    <input class="champ__saisie" type="number" inputmode="decimal" min="0" required [id]="'quantite-' + ligne.id"
+                      [step]="ligne.unite === 'ARTICLE' ? 1 : 0.001" [value]="quantiteEditee()"
+                      (input)="quantiteEditee.set($any($event.target).value)" />
+                    <span>{{ libellesUnites[ligne.unite] }}</span>
+                    <button class="bouton" type="submit" [disabled]="envoi()">OK</button>
+                    <button class="bouton bouton--secondaire" type="button" (click)="edition.set(null)">Annuler</button>
+                  </form>
+                } @else {
+                  <div class="ligne__actions">
+                    <button class="action" type="button" (click)="modifier(ligne)"
+                      [attr.aria-label]="'Modifier la quantité de ' + ligne.libelle">Modifier</button>
+                    <button class="action action--danger" type="button" [disabled]="envoi()" (click)="supprimer(ligne)"
+                      [attr.aria-label]="'Retirer ' + ligne.libelle + ' de ma liste'">Retirer</button>
+                  </div>
+                  <span class="ligne__quantite" [attr.aria-label]="'Quantité : ' + quantiteAffichee(ligne)">{{ quantiteAffichee(ligne) }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </main>
+</div>
