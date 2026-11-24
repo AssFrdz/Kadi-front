@@ -10,7 +10,7 @@ Aucune maquette Dribbble n'a pu être consultée (le site n'est pas accessible a
 
 ## Logo
 
-Source : `Logo Kadi.png`. Version d'usage : `public/logo-kadi.png` (détourée, sans signature). Utilisation sur papier, blanc cassé ou menthe uniquement. Ni déformation, ni recoloration, ni ombre. Une version vectorielle fournie par la personne qui a dessiné le logo remplacerait avantageusement le PNG.
+Source : `logo-kadi-source.png` (dans ce dossier). Version d'usage : `public/logo-kadi.png` (détourée, sans signature). Utilisation sur papier, blanc cassé ou menthe uniquement. Ni déformation, ni recoloration, ni ombre. Une version vectorielle fournie par la personne qui a dessiné le logo remplacerait avantageusement le PNG.
 
 ## Couleurs
 
