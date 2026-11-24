@@ -1,0 +1,34 @@
+:host { display: block; min-height: 100vh; }
+.page { min-height: 100vh; }
+.entete { background: var(--blanc); border-bottom: 1px solid var(--trait-doux); }
+.entete-interieur { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e3) var(--e5); min-height: 80px; padding-block: var(--e3); }
+.logo { height: 52px; width: auto; }
+.entete-titre { padding-left: var(--e5); border-left: 1px solid var(--trait-doux); font: 600 1rem var(--police-titre); }
+.liens { display: flex; gap: var(--e4); margin-left: auto; }
+.lien { font-size: 0.875rem; font-weight: 600; text-underline-offset: 4px; }
+.contenu { display: grid; gap: var(--e5); padding-block: var(--e6) var(--e8); max-width: 820px; }
+.sur-titre { margin: 0; color: var(--panier); font: 600 0.75rem var(--police-texte); letter-spacing: 0.1em; }
+h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); }
+.intro { margin: 0; color: var(--encre-douce); }
+.etat { display: grid; gap: var(--e3); justify-items: start; }
+.etat h2 { margin: 0; font-size: 1.35rem; }
+.etat p { margin: 0; }
+.etat-liste { color: var(--encre-douce); }
+.message-erreur { margin: 0; color: var(--erreur); font-weight: 600; }
+.message-succes { margin: 0; color: var(--foret); font-weight: 600; min-height: 1.25em; }
+
+.onglets { display: flex; flex-wrap: wrap; gap: var(--e2); }
+.onglet { padding: var(--e2) var(--e4); border: 1px solid var(--trait); border-radius: var(--rayon-pilule); background: var(--blanc); font: 600 0.875rem var(--police-texte); cursor: pointer; }
+.onglet--actif { border-color: var(--foret); background: var(--menthe-claire); }
+.onglet:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.propositions { display: grid; gap: var(--e3); margin: 0; padding: 0; list-style: none; }
+.proposition { display: grid; gap: var(--e4); }
+.proposition__libelle { margin: 0; font-size: 1.2rem; overflow-wrap: anywhere; }
+.proposition__auteur { margin: var(--e1, 0.25rem) 0 0; color: var(--encre-douce); font-size: 0.875rem; }
+.champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--e3); }
+.champs label { display: grid; gap: var(--e1, 0.25rem); font-size: 0.875rem; font-weight: 600; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--e3); }
+.decision { margin: 0; font-weight: 600; }
+.decision--acceptee { color: var(--foret); }
+.decision--refusee { color: var(--encre-douce); }

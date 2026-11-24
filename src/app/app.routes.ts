@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/liste/liste').then((m) => m.Liste),
   },
   {
+    path: 'moderation',
+    title: 'Modération — Kadi',
+    loadComponent: () => import('./features/moderation/moderation').then((m) => m.Moderation),
+  },
+  {
     path: '',
     title: 'Kadi — Les bons comptes font les bonnes courses',
     loadComponent: () => import('./features/accueil/accueil').then((m) => m.Accueil),

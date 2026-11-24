@@ -10,6 +10,9 @@
       </option>
     }
   </select>
+  @if (service.courant()?.role === 'ADMINISTRATEUR') {
+    <a class="lien-admin" routerLink="/moderation">Modération des besoins</a>
+  }
   <span class="note">Démonstration : pas de connexion, le profil est simulé.</span>
   @if (service.erreur()) {
     <span class="erreur" role="alert">{{ service.erreur() }}</span>

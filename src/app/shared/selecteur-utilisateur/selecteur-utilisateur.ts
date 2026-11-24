@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { RoleUtilisateur, UtilisateurCourantService } from '../../core/utilisateur/utilisateur-courant.service';
 
 const LIBELLES_ROLES: Record<RoleUtilisateur, string> = {
@@ -9,6 +10,7 @@ const LIBELLES_ROLES: Record<RoleUtilisateur, string> = {
 /** Liste déroulante « Utilisateur actuel » : simule la connexion en choisissant un profil. */
 @Component({
   selector: 'kadi-selecteur-utilisateur',
+  imports: [RouterLink],
   templateUrl: './selecteur-utilisateur.html',
   styleUrl: './selecteur-utilisateur.css',
 })

@@ -29,3 +29,9 @@ select {
 .erreur {
   color: var(--erreur);
 }
+
+.lien-admin {
+  font-weight: 600;
+  color: var(--foret);
+  text-underline-offset: 3px;
+}
