@@ -46,7 +46,8 @@ h1 { margin-block: var(--e2) var(--e3); font-size: clamp(2.2rem, 5vw, 3.5rem); }
 .produit { display: flex; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid var(--trait-doux); border-radius: var(--rayon-m); background: var(--blanc); }
 .illustration { display: grid; place-items: center; min-height: 190px; padding: var(--e4); background: var(--blanc); }
 .photo { width: 100%; height: 170px; object-fit: contain; }
-.illustration--vide { align-content: center; gap: var(--e2); background: var(--menthe-claire); color: var(--encre-douce); font-size: 0.8rem; }
+.illustration--vide { align-content: center; justify-items: center; gap: var(--e2); background: var(--menthe-claire); color: var(--encre-douce); font-size: 0.8rem; }
+.illustration--vide img { width: 72px; height: 72px; }
 .produit-infos { display: grid; align-content: start; gap: var(--e2); padding: var(--e4); border-top: 1px solid var(--trait-doux); }
 .produit h3 { overflow-wrap: anywhere; font-size: 1.15rem; line-height: 1.2; }
 .marque { overflow-wrap: anywhere; color: var(--panier); font-size: 0.8rem; font-weight: 700; }

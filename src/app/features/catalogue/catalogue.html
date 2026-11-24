@@ -147,9 +147,11 @@
                         loading="lazy" referrerpolicy="no-referrer" (error)="imageEnErreur(produit.id)" />
                     </a>
                   } @else {
-                    <div class="illustration illustration--vide" aria-label="Photo non disponible">
-                      <img src="favicon.svg" alt="" width="58" height="58" />
-                      <span>Photo non disponible</span>
+                    @let dessin = illustration(produit);
+                    <div class="illustration illustration--vide" role="img"
+                      [attr.aria-label]="dessin.famille + ' : photo non disponible'">
+                      <img [src]="dessin.src" alt="" width="72" height="72" />
+                      <span aria-hidden="true">Photo non disponible</span>
                     </div>
                   }
                   <div class="produit-infos">

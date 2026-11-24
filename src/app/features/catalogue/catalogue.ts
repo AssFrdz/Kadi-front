@@ -6,6 +6,7 @@ import { EMPTY, Observable, Subject, catchError, map, of, switchMap, timer } fro
 import { UtilisateurCourantService } from '../../core/utilisateur/utilisateur-courant.service';
 import { DemandeAjout, ListeApi } from '../liste/liste-api';
 import { CatalogueApi, FiltresCatalogue, MarqueCatalogue, ProduitCatalogue } from './catalogue-api';
+import { IllustrationProduit, illustrationProduit } from './illustration-produit';
 
 function longueurRecherche(texte: string): number {
   const normalise = texte.normalize('NFD').replace(/\p{M}+/gu, '')
@@ -195,6 +196,10 @@ export class Catalogue implements OnInit {
     } else {
       this.rechercher(this.saisie());
     }
+  }
+
+  illustration(produit: ProduitCatalogue): IllustrationProduit {
+    return illustrationProduit(produit.libelle);
   }
 
   imageEnErreur(id: number): void {
