@@ -1,17 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, InjectionToken, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { EMPTY, Observable, Subject, catchError, map, of, switchMap, timer } from 'rxjs';
 import { UtilisateurCourantService } from '../../core/utilisateur/utilisateur-courant.service';
 import { DemandeAjout, ListeApi } from '../liste/liste-api';
-import { CatalogueApi, FiltresCatalogue, MarqueCatalogue, NutriScore, ProduitCatalogue } from './catalogue-api';
-import { NUTRI_SCORE_EXPERIMENTAL } from './nutri-score-configuration';
-
-export const NUTRI_SCORE_ACTIF = new InjectionToken<boolean>('Nutri-Score expérimental', {
-  providedIn: 'root',
-  factory: () => NUTRI_SCORE_EXPERIMENTAL,
-});
+import { CatalogueApi, FiltresCatalogue, MarqueCatalogue, ProduitCatalogue } from './catalogue-api';
 
 function longueurRecherche(texte: string): number {
   const normalise = texte.normalize('NFD').replace(/\p{M}+/gu, '')
@@ -31,7 +25,7 @@ export class Catalogue implements OnInit {
   private readonly utilisateur = inject(UtilisateurCourantService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly recherches = new Subject<{ texte: string; curseur: string | null; filtres: FiltresCatalogue }>();
-  private readonly demandesMarques = new Subject<{ texte: string; format: string; nutriScores: readonly NutriScore[] }>();
+  private readonly demandesMarques = new Subject<{ texte: string; format: string }>();
   private readonly consultations = new Subject<
     | { tri: 'initial'; apres: number; filtres: FiltresCatalogue }
     | { tri: 'nom'; apres: string | null; filtres: FiltresCatalogue }
@@ -57,8 +51,6 @@ export class Catalogue implements OnInit {
   readonly tousResultats = signal(false);
   readonly erreurSuite = signal(false);
   readonly filtres = signal<FiltresCatalogue>({ marque: '', format: '' });
-  readonly nutriScoreActif = inject(NUTRI_SCORE_ACTIF);
-  readonly notesNutriScore: readonly NutriScore[] = ['A', 'B', 'C', 'D', 'E'];
   readonly filtresOuverts = signal(false);
   readonly marques = signal<MarqueCatalogue[]>([]);
   readonly chargementMarques = signal(false);
@@ -68,18 +60,18 @@ export class Catalogue implements OnInit {
     const marque = this.filtres().marque;
     return !!marque && !this.marques().some((element) => element.nom.toLowerCase() === marque.toLowerCase());
   });
-  readonly filtresActifs = computed(() => !!(this.filtres().marque || this.filtres().format || this.filtres().nutriScores?.length));
+  readonly filtresActifs = computed(() => !!(this.filtres().marque || this.filtres().format));
   readonly rechercheActive = computed(() => this.saisie().trim().length > 0);
   readonly produitsAffiches = computed(() => this.rechercheActive() ? this.suggestions() : this.produits());
 
   constructor() {
     this.demandesMarques.pipe(
-      switchMap(({ texte, format, nutriScores }) => {
+      switchMap(({ texte, format }) => {
         if (texte.trim() && longueurRecherche(texte) < 3) {
           return EMPTY;
         }
         return timer(250).pipe(
-          switchMap(() => this.api.listerMarques(texte, format, nutriScores)),
+          switchMap(() => this.api.listerMarques(texte, format)),
           map((marques) => ({ marques, erreur: null })),
           catchError((erreur: unknown) => of({ marques: null, erreur })),
         );
@@ -172,33 +164,21 @@ export class Catalogue implements OnInit {
     this.recherches.next({ texte: this.saisie(), curseur, filtres: this.filtres() });
   }
 
-  appliquerFiltres(marque: string, format: string, nutriScores: readonly NutriScore[] = this.filtres().nutriScores ?? []): void {
+  appliquerFiltres(marque: string, format: string): void {
     const nouveauFormat = format.trim();
     const formatModifie = nouveauFormat !== this.filtres().format;
-    const scores = this.notesNutriScore.filter((score) => nutriScores.includes(score));
-    const scoresModifies = scores.join(',') !== (this.filtres().nutriScores ?? []).join(',');
-    this.filtres.set({
-      marque: marque.trim(),
-      format: nouveauFormat,
-      ...(scores.length ? { nutriScores: scores } : {}),
-    });
+    this.filtres.set({ marque: marque.trim(), format: nouveauFormat });
     this.produits.set([]);
     this.prochainId.set(null);
     this.prochainNom.set(null);
     this.charge.set(false);
     this.chargement.set(false);
     this.chargerPremierePage();
-    this.rechercher(this.saisie(), formatModifie || scoresModifies);
+    this.rechercher(this.saisie(), formatModifie);
   }
 
   choisirMarque(marque: string): void {
     this.appliquerFiltres(marque, this.filtres().format);
-  }
-
-  choisirNutriScore(score: NutriScore, selectionne: boolean): void {
-    const scores = this.filtres().nutriScores ?? [];
-    this.appliquerFiltres(this.filtres().marque, this.filtres().format,
-      selectionne ? [...scores, score] : scores.filter((note) => note !== score));
   }
 
   actualiserMarques(): void {
@@ -206,7 +186,7 @@ export class Catalogue implements OnInit {
     this.marques.set([]);
     this.erreurMarques.set('');
     this.chargementMarques.set(!(texte.trim() && longueurRecherche(texte) < 3));
-    this.demandesMarques.next({ texte, format: this.filtres().format, nutriScores: this.filtres().nutriScores ?? [] });
+    this.demandesMarques.next({ texte, format: this.filtres().format });
   }
 
   reessayerRecherche(): void {

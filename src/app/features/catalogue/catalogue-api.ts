@@ -27,10 +27,7 @@ export interface PageRecherche {
 export interface FiltresCatalogue {
   marque: string;
   format: string;
-  nutriScores?: readonly NutriScore[];
 }
-
-export type NutriScore = 'A' | 'B' | 'C' | 'D' | 'E';
 
 export interface MarqueCatalogue {
   nom: string;
@@ -57,13 +54,10 @@ export class CatalogueApi {
     });
   }
 
-  listerMarques(q: string, format: string, nutriScores: readonly NutriScore[] = []): Observable<MarqueCatalogue[]> {
+  listerMarques(q: string, format: string): Observable<MarqueCatalogue[]> {
     let params = new HttpParams().set('q', q);
     if (format) {
       params = params.set('format', format);
-    }
-    for (const score of nutriScores) {
-      params = params.append('nutriScore', score);
     }
     return this.http.get<MarqueCatalogue[]>(`${BASE_API}/catalogue/produits/marques`, {
       params,
@@ -92,9 +86,6 @@ export class CatalogueApi {
     }
     if (filtres.format) {
       params = params.set('format', filtres.format);
-    }
-    for (const score of filtres.nutriScores ?? []) {
-      params = params.append('nutriScore', score);
     }
     return params;
   }

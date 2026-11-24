@@ -20,7 +20,7 @@ La page d'accueil est une vitrine de la charte. Il n'y a pas de connexion : la l
 - `src/styles/tokens.css` : couleurs, polices, espacements, rayons, reliefs (seule source des valeurs).
 - `src/styles/base.css` : reset et règles globales ; `components.css` : boutons, champs, pastilles, cartes.
 - `src/app/features/accueil/` et `src/app/features/charte/` : pages existantes, chargées à la demande.
-- `public/logo-kadi.png` : logo détouré (fond transparent) tiré de `Logo Kadi.png` ; `public/favicon.svg` : panier seul, en vectoriel.
+- `public/logo-kadi.png` : logo détouré (fond transparent) tiré de `doc/logo-kadi-source.png` ; `public/favicon.svg` : panier seul, en vectoriel.
 - `doc/charte-visuelle.md` : intentions de design et règles d'usage.
 - `src/app/core/api/produits-api.ts` : seul fichier qui appelle `GET /api/v1/produits` (recherche commune F1/F2).
 - `src/app/shared/recherche-produit/` : champ de recherche de produit partagé (F1 « Ma liste », F2 « Prix d'un produit » et « Ajouter un prix »).
@@ -38,10 +38,6 @@ La marque et le format sont affichés lorsqu'ils sont renseignés et contribuent
 Le parcours du catalogue propose l'ordre initial ou le tri par nom, sans perdre les filtres ; le tri est appliqué sur l'ensemble du catalogue avant pagination. Les suggestions restent classées par pertinence. Les limites du tri et de sa pagination sont précisées dans le README du back.
 
 Le filtre de marque propose une sélection unique dans les marques connues. Le nombre affiché compte les produits correspondant à la recherche et au format actifs, toutes pages confondues, sans appliquer la marque elle-même ; les produits sans marque renseignée ne sont pas comptés. Les limites de performance et de regroupement des marques sont décrites dans le README du back.
-
-Un filtre Nutri-Score à sélection multiple est préparé derrière `NUTRI_SCORE_ACTIF`, désactivé par défaut. Il exclut les produits sans note lorsque des notes sont sélectionnées et transmet celles-ci aux résultats et aux compteurs de marques. Il ne faut pas l'activer pour les utilisateurs avant la migration, l'alimentation vérifiée des notes et les validations indiquées dans le README du back.
-
-Une configuration de développement explicite permet de préparer un essai isolé de l'interface : `npm start -- --configuration nutri-score-experimental`. Les configurations habituelles de développement et de production laissent le filtre désactivé. Ne pas lancer cette configuration sur le catalogue réel avant d'avoir validé la migration, les données et l'activation correspondante du back ; l'option du front ne les active pas automatiquement.
 
 ## Ma liste (F1)
 

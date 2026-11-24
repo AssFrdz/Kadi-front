@@ -77,25 +77,12 @@
                   </div>
                 }
               </fieldset>
-              @if (nutriScoreActif) {
-                <fieldset class="marques nutri-scores" aria-describedby="aide-nutri-score">
-                  <legend>Nutri-Score</legend>
-                  @for (score of notesNutriScore; track score) {
-                    <label class="choix-marque">
-                      <input #note type="checkbox" [checked]="filtres().nutriScores?.includes(score) ?? false"
-                        (change)="choisirNutriScore(score, note.checked)" />
-                      <span>{{ score }}</span>
-                    </label>
-                  }
-                  <p id="aide-nutri-score">Les produits sans note renseignée sont exclus lorsqu’un score est sélectionné.</p>
-                </fieldset>
-              }
               <label for="filtre-format">Format</label>
               <input #champFormat id="filtre-format" type="text" maxlength="255" placeholder="Ex. 400 g" />
               <p>Une partie du format, sans conversion d’unités.</p>
               <button class="bouton" type="submit">Appliquer</button>
               <button class="bouton bouton--secondaire" type="button"
-                (click)="champFormat.value = ''; appliquerFiltres('', '', [])">Effacer les filtres</button>
+                (click)="champFormat.value = ''; appliquerFiltres('', '')">Effacer les filtres</button>
             </form>
           </div>
         </aside>

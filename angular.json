@@ -49,14 +49,6 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
-            },
-            "nutri-score-experimental": {
-              "fileReplacements": [
-                {
-                  "replace": "src/app/features/catalogue/nutri-score-configuration.ts",
-                  "with": "src/app/features/catalogue/nutri-score-configuration.experimental.ts"
-                }
-              ]
             }
           },
           "defaultConfiguration": "production"
@@ -69,9 +61,6 @@
             },
             "development": {
               "buildTarget": "kadi:build:development"
-            },
-            "nutri-score-experimental": {
-              "buildTarget": "kadi:build:development,nutri-score-experimental"
             }
           },
           "defaultConfiguration": "development"

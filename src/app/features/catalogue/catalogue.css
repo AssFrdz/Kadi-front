@@ -26,7 +26,6 @@ h1 { margin-block: var(--e2) var(--e3); font-size: clamp(2.2rem, 5vw, 3.5rem); }
 .contenu-filtres input[type="text"] { width: 100%; min-width: 0; min-height: 48px; padding: var(--e3); border: 1px solid var(--trait); border-radius: var(--rayon-s); background: var(--blanc); color: var(--encre); font: inherit; }
 .marques { display: grid; gap: var(--e2); min-width: 0; margin: 0; padding: 0; border: 0; }
 .marques legend { margin-bottom: var(--e2); font-weight: 700; }
-.nutri-scores { margin-top: var(--e3); }
 .liste-marques { display: grid; max-height: 240px; overflow-y: auto; }
 .contenu-filtres .choix-marque { display: flex; align-items: center; gap: var(--e2); min-height: 40px; margin: 0; font-size: 0.9rem; font-weight: 400; overflow-wrap: anywhere; }
 .choix-marque input { flex: none; accent-color: var(--panier); }
