@@ -47,6 +47,8 @@ Une configuration de développement explicite permet de préparer un essai isol�
 
 <http://127.0.0.1:4200/liste>, pour le profil choisi dans la liste déroulante « Utilisateur actuel ». Sans profil sélectionné, la page invite à en choisir un ; changer de profil affiche la liste de ce profil.
 
+**Modération.** Quand « Admin Kadi » est choisi, le bandeau affiche un lien « Modération des besoins » vers <http://127.0.0.1:4200/moderation> : l'administrateur y accepte les besoins personnels proposés (avec un libellé corrigé, ou en les rattachant à un besoin existant) ou les refuse ; onglets En attente, Acceptés et Refusés.
+
 - La recherche propose, dès 2 caractères, les produits précis, les besoins génériques (indiqués « Référence non précisée ») et les besoins personnels de l'utilisateur (« Mon besoin »). Un résultat approché, par exemple malgré une faute de frappe, est signalé « À confirmer ».
 - Rien n'est ajouté avant que l'utilisateur choisisse une suggestion puis valide la quantité, l'unité et, pour un besoin, un format souhaité facultatif conservé tel que saisi. Les unités proposées sont celles renvoyées par le back : article seulement pour un produit précis, selon la nature pour un besoin générique.
 - Si rien ne convient, « + L'ajouter quand même » crée un besoin personnel, identifié comme tel et en attente de validation.
