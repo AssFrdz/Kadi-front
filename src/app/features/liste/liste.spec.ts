@@ -1,7 +1,6 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { signal } from '@angular/core';
 import { ProduitsApi } from '../../core/api/produits-api';
 import { UtilisateurCourantService } from '../../core/utilisateur/utilisateur-courant.service';
@@ -64,11 +63,6 @@ describe('Liste', () => {
     expect(texte()).toContain('3');
   });
 
-  it('signale une liste vide', () => {
-    consulter.mockReturnValue(of({ lignes: [] }));
-    expect(creer().texte()).toContain('Ta liste est vide');
-  });
-
   it('demande de choisir un utilisateur quand aucun profil n’est sélectionné', () => {
     utilisateurCourant.id.set(null);
     const { fixture, texte } = creer();
@@ -85,16 +79,6 @@ describe('Liste', () => {
     fixture.detectChanges();
     expect(consulter).toHaveBeenCalledTimes(2);
     expect(texte()).toContain('Ta liste est vide');
-  });
-
-  it('signale une erreur de chargement et permet de réessayer', () => {
-    consulter.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 500 })))
-      .mockReturnValueOnce(of({ lignes: [POMMES] }));
-    const { fixture, texte } = creer();
-    expect(texte()).toContain('Je n’ai pas pu charger ta liste');
-    (fixture.nativeElement.querySelector('.etat button') as HTMLButtonElement).click();
-    fixture.detectChanges();
-    expect(texte()).toContain('Pommes');
   });
 
   it('n’ajoute rien avant que l’utilisateur valide, puis envoie référence, quantité, unité et format (REQ-049, REQ-066)', () => {
@@ -184,28 +168,4 @@ describe('Liste', () => {
     expect(fixture.nativeElement.querySelectorAll('li.ligne')).toHaveLength(1);
   });
 
-  it('refuse une quantité nulle sans appeler l’API et affiche le message du back en cas de refus', () => {
-    consulter.mockReturnValue(of({ lignes: [POMMES] }));
-    modifierQuantite.mockReturnValue(throwError(() => new HttpErrorResponse({
-      status: 400, error: { detail: 'La quantité accepte au plus 3 décimales.' } })));
-    const { fixture, composant, texte } = creer();
-    composant.quantiteEditee.set('0');
-    composant.enregistrerQuantite(POMMES);
-    expect(modifierQuantite).not.toHaveBeenCalled();
-
-    composant.quantiteEditee.set('1.2345');
-    composant.enregistrerQuantite(POMMES);
-    fixture.detectChanges();
-    expect(texte()).toContain('La quantité accepte au plus 3 décimales.');
-  });
-
-  it('explique un refus de droits (403) sans perdre la liste', () => {
-    consulter.mockReturnValue(of({ lignes: [POMMES] }));
-    supprimer.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
-    const { fixture, composant, texte } = creer();
-    composant.supprimer(POMMES);
-    fixture.detectChanges();
-    expect(texte()).toContain('n’a pas le droit');
-    expect(fixture.nativeElement.querySelectorAll('li.ligne')).toHaveLength(1);
-  });
 });

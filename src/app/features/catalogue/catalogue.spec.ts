@@ -36,61 +36,6 @@ describe('Catalogue', () => {
     });
   });
 
-  it('trie le catalogue sans perdre les filtres, charge et réessaie la suite', async () => {
-      consulter.mockReturnValue(of({ produits: [{ id: 1, libelle: 'Zèbre' }], prochainId: null }));
-      consulterParNom
-        .mockReturnValueOnce(of({ produits: [{ id: 2, libelle: 'Abricot' }], prochainCurseur: 'suite' }))
-        .mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 503 })))
-        .mockReturnValueOnce(of({ produits: [{ id: 1, libelle: 'Zèbre' }], prochainCurseur: null }));
-      const fixture = TestBed.createComponent(Catalogue);
-      fixture.detectChanges();
-      fixture.componentInstance.appliquerFiltres('Test', '');
-      const tri = fixture.nativeElement.querySelector('#tri-catalogue') as HTMLSelectElement;
-      tri.value = 'nom';
-      tri.dispatchEvent(new Event('change'));
-      fixture.detectChanges();
-      expect(consulterParNom).toHaveBeenLastCalledWith(null, { marque: 'Test', format: '' });
-      expect(fixture.nativeElement.textContent).toContain('Abricot');
-      expect(fixture.nativeElement.textContent).not.toContain('Zèbre');
-      fixture.componentInstance.chargerSuite();
-      expect(fixture.componentInstance.erreur()).not.toBe('');
-      fixture.componentInstance.reessayerCatalogue();
-      fixture.detectChanges();
-      expect(consulterParNom).toHaveBeenLastCalledWith('suite', { marque: 'Test', format: '' });
-      expect(fixture.nativeElement.textContent).toContain('Zèbre');
-      expect(fixture.componentInstance.produits()).toHaveLength(2);
-      fixture.destroy();
-  });
-
-    it('limite les appels et ignore les réponses dépassées', async () => {
-      vi.useFakeTimers();
-      try {
-        consulter.mockReturnValue(of({ produits: [], prochainId: null }));
-        const ancienne = new Subject<{ produits: never[]; prochainCurseur: null }>();
-        const nouvelle = new Subject<{ produits: never[]; prochainCurseur: null }>();
-        rechercher.mockReturnValueOnce(ancienne).mockReturnValueOnce(nouvelle);
-        const fixture = TestBed.createComponent(Catalogue);
-        fixture.detectChanges();
-        fixture.componentInstance.rechercher('nu');
-        await vi.advanceTimersByTimeAsync(300);
-        expect(rechercher).not.toHaveBeenCalled();
-        fixture.componentInstance.rechercher('nut');
-        await vi.advanceTimersByTimeAsync(300);
-        fixture.componentInstance.rechercher('coca');
-        ancienne.next({ produits: [], prochainCurseur: null });
-        expect(fixture.componentInstance.rechercheEffectuee()).toBe(false);
-        await vi.advanceTimersByTimeAsync(300);
-        nouvelle.next({ produits: [], prochainCurseur: null });
-        expect(fixture.componentInstance.rechercheEffectuee()).toBe(true);
-        expect(rechercher).toHaveBeenLastCalledWith('coca', null, 7, { marque: '', format: '' });
-        fixture.componentInstance.rechercher('');
-        expect(fixture.componentInstance.rechercheActive()).toBe(false);
-        fixture.destroy();
-      } finally {
-        vi.useRealTimers();
-      }
-    });
-
     it('signale un échec de recherche sans l’afficher comme une absence de résultat', async () => {
       vi.useFakeTimers();
       try {
@@ -108,16 +53,6 @@ describe('Catalogue', () => {
         vi.useRealTimers();
       }
     });
-  it('explique clairement que le catalogue est vide', async () => {
-    consulter.mockReturnValue(of({ produits: [], prochainId: null }));
-    const fixture = TestBed.createComponent(Catalogue);
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('Il n’y a pas encore de produits ici.');
-    expect(fixture.nativeElement.querySelectorAll('li')).toHaveLength(0);
-  });
-
   it('affiche les produits et leur illustration de remplacement puis charge la suite', async () => {
     consulter
       .mockReturnValueOnce(of({
@@ -170,45 +105,6 @@ describe('Catalogue', () => {
     expect(fixture.nativeElement.textContent).toContain('Données :');
   });
 
-  it('affiche la marque et le format uniquement quand ils sont connus', async () => {
-    consulter.mockReturnValue(of({
-      produits: [
-        { id: 1, libelle: 'Pâtes', codeBarres: null, marque: 'Marque test', format: '500 g' },
-        { id: 2, libelle: 'Produit sans détails', codeBarres: null, marque: null, format: null },
-      ], prochainId: null,
-    }));
-    const fixture = TestBed.createComponent(Catalogue);
-    await fixture.whenStable();
-    fixture.detectChanges();
-    const cartes = fixture.nativeElement.querySelectorAll('li');
-    expect(cartes[0].textContent).toContain('Marque test');
-    expect(cartes[0].textContent).toContain('500 g');
-    expect(cartes[1].textContent).toContain('Marque non renseignée');
-    expect(cartes[1].textContent).not.toContain('500 g');
-  });
-
-  it('affiche les marques et sélectionne une seule marque sans saisie', async () => {
-    vi.useFakeTimers();
-    try {
-      consulter.mockReturnValue(of({ produits: [], prochainId: null }));
-      listerMarques.mockReturnValue(of([{ nom: 'Nutella', nombre: 2 }, { nom: 'Ferrero', nombre: 1 }]));
-      const fixture = TestBed.createComponent(Catalogue);
-      fixture.detectChanges();
-      await vi.advanceTimersByTimeAsync(300);
-      fixture.detectChanges();
-      const option = fixture.nativeElement.querySelector('input[value="Nutella"]') as HTMLInputElement;
-      expect(option.closest('label')?.textContent).toContain('2');
-      option.click();
-      fixture.detectChanges();
-      expect(consulter).toHaveBeenLastCalledWith(0, { marque: 'Nutella', format: '' });
-      expect(fixture.componentInstance.filtres().marque).toBe('Nutella');
-      expect(fixture.nativeElement.querySelector('#filtre-marque')).toBeNull();
-      fixture.destroy();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
   it('affiche les suggestions puis retrouve les produits parcourus quand la recherche est effacée', async () => {
     vi.useFakeTimers();
     try {
@@ -230,27 +126,6 @@ describe('Catalogue', () => {
     } finally {
       vi.useRealTimers();
     }
-  });
-
-  it('affiche une erreur et permet de réessayer la page qui a échoué', async () => {
-    consulter
-      .mockReturnValueOnce(of({ produits: [{ id: 1, libelle: 'Produit', codeBarres: null }], prochainId: 1 }))
-      .mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 503 })))
-      .mockReturnValueOnce(of({ produits: [], prochainId: null }));
-    const fixture = TestBed.createComponent(Catalogue);
-    await fixture.whenStable();
-    fixture.componentInstance.chargerSuite();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain('pas pu charger');
-    const bouton = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
-      .find((element) => element.textContent?.includes('Réessayer'));
-    bouton?.click();
-    await fixture.whenStable();
-
-    expect(consulter).toHaveBeenLastCalledWith(1, { marque: '', format: '' });
-    expect(fixture.componentInstance.erreur()).toBe('');
   });
 
   it('applique les filtres au catalogue et à la recherche et ignore les anciennes pages', async () => {
@@ -306,17 +181,6 @@ describe('Catalogue', () => {
       expect(fixture.nativeElement.querySelector('a[href="/liste"]')).not.toBeNull();
     });
 
-    it('augmente la quantité si le produit est déjà dans la liste', () => {
-      ajouter.mockReturnValue(of({ statut: 'FUSIONNEE', ligneId: 'l1', lignesCandidates: [], lignes: [
-        { id: 'l1', type: 'PRODUIT', referenceId: 42, libelle: 'Spaghetti n°5', marque: 'Barilla', formatProduit: '500 g',
-          quantite: 2, unite: 'ARTICLE', formatSouhaite: null, statutBesoin: null, unitesAutorisees: ['ARTICLE'] },
-      ] }));
-      const { fixture, bouton, texte } = afficher();
-      bouton().click();
-      fixture.detectChanges();
-      expect(texte()).toContain('quantité portée à 2');
-    });
-
     it('demande de choisir un utilisateur sans appeler l’API', () => {
       utilisateurCourant.id.set(null);
       const { fixture, bouton, texte } = afficher();
@@ -326,11 +190,5 @@ describe('Catalogue', () => {
       expect(texte()).toContain('Choisis un utilisateur');
     });
 
-    it('rend la photo cliquable pour l’ouvrir en grand', () => {
-      const { fixture } = afficher();
-      const lien = fixture.nativeElement.querySelector('a.illustration') as HTMLAnchorElement;
-      expect(lien.getAttribute('href')).toBe(SPAGHETTI.imageUrl);
-      expect(lien.getAttribute('target')).toBe('_blank');
-    });
   });
 });

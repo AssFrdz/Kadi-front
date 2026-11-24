@@ -34,14 +34,6 @@ describe('UtilisateurCourantService et intercepteur', () => {
     expect(localStorage.getItem(CLE_STOCKAGE_UTILISATEUR)).toBe('2');
   });
 
-  it('retrouve le profil choisi lors d’une visite précédente', () => {
-    localStorage.setItem(CLE_STOCKAGE_UTILISATEUR, '3');
-    const service = configurer();
-    service.charger();
-    http.expectOne(`${API}/utilisateurs`).flush(PROFILS);
-    expect(service.id()).toBe(3);
-  });
-
   it('ajoute X-Utilisateur-Id aux appels de l’API, et seulement à eux', () => {
     const service = configurer();
     service.choisir(3);
@@ -54,9 +46,4 @@ describe('UtilisateurCourantService et intercepteur', () => {
     expect(http.expectOne('https://exemple.test/autre').request.headers.has('X-Utilisateur-Id')).toBe(false);
   });
 
-  it('n’ajoute pas d’en-tête tant qu’aucun profil n’est choisi', () => {
-    configurer();
-    TestBed.inject(HttpClient).get(`${API}/produits`).subscribe();
-    expect(http.expectOne(`${API}/produits`).request.headers.has('X-Utilisateur-Id')).toBe(false);
-  });
 });

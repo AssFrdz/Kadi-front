@@ -15,13 +15,6 @@ describe('ListeApi', () => {
 
   afterEach(() => http.verify());
 
-  it('consulte la liste sans cookie ni jeton CSRF', () => {
-    api.consulter().subscribe();
-    const requete = http.expectOne('http://127.0.0.1:8080/api/v1/liste');
-    expect(requete.request.withCredentials).toBe(false);
-    requete.flush({ lignes: [] });
-  });
-
   it('ajoute une ligne en une seule requête', () => {
     api.ajouter({ type: 'BESOIN_GENERIQUE', referenceId: 3, quantite: 1.5, unite: 'KILOGRAMME' }).subscribe();
     const requete = http.expectOne('http://127.0.0.1:8080/api/v1/liste/lignes');

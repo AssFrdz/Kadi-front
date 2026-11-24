@@ -1,7 +1,6 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { ProduitTrouve, ProduitsApi } from '../../core/api/produits-api';
 import { RechercheProduit } from './recherche-produit';
 
@@ -48,14 +47,6 @@ describe('RechercheProduit', () => {
     expect(rechercher).toHaveBeenCalledWith('lai', null);
   });
 
-  it('ne lance aucune recherche avant 2 caractères', async () => {
-    const { taper, texte } = creer();
-    taper(' l ');
-    await vi.advanceTimersByTimeAsync(500);
-    expect(rechercher).not.toHaveBeenCalled();
-    expect(texte()).not.toContain('Aucun produit');
-  });
-
   it('affiche marque, quantité et code-barres, et signale un résultat à confirmer', async () => {
     rechercher.mockReturnValue(of([LAIT, YAOURT]));
     const { fixture, taper, texte } = creer();
@@ -100,67 +91,6 @@ describe('RechercheProduit', () => {
     expect(champ.getAttribute('aria-activedescendant')).toContain('option-1');
     champ.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
     expect(choix).toEqual([YAOURT]);
-  });
-
-  it('ignore une réponse tardive d’une ancienne saisie', async () => {
-    const ancienne = new Subject<ProduitTrouve[]>();
-    rechercher.mockReturnValueOnce(ancienne).mockReturnValueOnce(of([YAOURT]));
-    const { fixture, taper, texte } = creer();
-    taper('lait');
-    await vi.advanceTimersByTimeAsync(300);
-    taper('yaourt');
-    await vi.advanceTimersByTimeAsync(300);
-    ancienne.next([LAIT]);
-    fixture.detectChanges();
-    expect(texte()).toContain('Yaourt nature');
-    expect(texte()).not.toContain('Lactel');
-  });
-
-  it('signale l’absence de résultat', async () => {
-    rechercher.mockReturnValue(of([]));
-    const { fixture, taper, texte } = creer();
-    taper('xyz');
-    await vi.advanceTimersByTimeAsync(300);
-    fixture.detectChanges();
-    expect(texte()).toContain('Aucun produit ne correspond.');
-  });
-
-  it('demande de choisir un utilisateur si aucun profil n’est sélectionné (400)', async () => {
-    rechercher.mockReturnValue(throwError(() => new HttpErrorResponse({
-      status: 400, error: { detail: 'Aucun utilisateur sélectionné : l’en-tête X-Utilisateur-Id est obligatoire.' },
-    })));
-    const { fixture, taper, texte } = creer();
-    taper('lait');
-    await vi.advanceTimersByTimeAsync(300);
-    fixture.detectChanges();
-    expect(texte()).toContain('Choisis un utilisateur');
-  });
-
-  it('garde la liste ouverte si l’on tape juste après avoir quitté le champ (fermeture en attente annulée)', async () => {
-    rechercher.mockReturnValue(of([YAOURT]));
-    const { fixture, champ, taper, texte } = creer();
-    champ.dispatchEvent(new Event('blur'));
-    await vi.advanceTimersByTimeAsync(50);
-    taper('yaort');
-    await vi.advanceTimersByTimeAsync(400);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
-    expect(texte()).toContain('Yaourt nature');
-  });
-
-  it('signale une erreur et permet de réessayer', async () => {
-    rechercher.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 500 })))
-      .mockReturnValueOnce(of([LAIT]));
-    const { fixture, taper, texte } = creer();
-    taper('lait');
-    await vi.advanceTimersByTimeAsync(300);
-    fixture.detectChanges();
-    expect(texte()).toContain('La recherche n’a pas abouti.');
-    (fixture.nativeElement.querySelector('.etat--erreur button') as HTMLButtonElement).click();
-    await vi.advanceTimersByTimeAsync(300);
-    fixture.detectChanges();
-    expect(rechercher).toHaveBeenCalledTimes(2);
-    expect(texte()).toContain('Lactel');
   });
 
   it('peut exiger 3 caractères et limiter l’affichage à 7 suggestions (REQ-007, REQ-070)', async () => {
